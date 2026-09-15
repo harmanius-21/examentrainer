@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV2';
+const STORAGE = 'geschiedenisTrainerV3';
 
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
   unlocked: false,
@@ -15,6 +15,16 @@ let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
 let current = null;
 let answered = false;
 const norm = s => String(s ?? '').toLowerCase().trim().replace(/\s+/g, ' ');
+const answerNorm = s => norm(s).replace(/\s+/g, '');
+function answersMatch(given, expected) {
+  const a = answerNorm(given);
+  const b = answerNorm(expected);
+  if (a === b) return true;
+  // Een ontbrekende of extra e aan het einde wordt toegestaan.
+  if (a + 'e' === b) return true;
+  if (b + 'e' === a) return true;
+  return false;
+}
 const BANK = Array.isArray(QUESTIONS[0]) ? QUESTIONS.flat() : QUESTIONS;
 
 function save() {
@@ -89,7 +99,7 @@ function check() {
   }
 
   answered = true;
-  const ok = current.answers.some(a => norm(a) === given);
+  const ok = current.answers.some(a => answersMatch(given, a));
 
   if (ok) {
     state.correct++;
@@ -148,6 +158,25 @@ $('skipBtn').onclick = () => {
 };
 $('teacherBtn').onclick = () => $('teacherPanel').classList.remove('hidden');
 $('closeTeacher').onclick = () => $('teacherPanel').classList.add('hidden');
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  $('installBtn').classList.remove('hidden');
+});
+$('installBtn').onclick = async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  $('installBtn').classList.add('hidden');
+};
+window.addEventListener('appinstalled', () => $('installBtn').classList.add('hidden'));
+
+// Zorg dat het antwoordveld en de knoppen zichtbaar blijven boven het mobiele toetsenbord.
+$('answer').addEventListener('focus', () => {
+  setTimeout(() => $('answer').scrollIntoView({behavior:'smooth', block:'center'}), 250);
+});
 $('resetBtn').onclick = () => {
   if (confirm('Weet je zeker dat je de voortgang op dit apparaat wilt wissen?')) {
     localStorage.removeItem(STORAGE);
@@ -157,4 +186,4 @@ $('resetBtn').onclick = () => {
 
 updateStats();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=3').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=4').catch(() => {});

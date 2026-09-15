@@ -38,47 +38,101 @@
   </section>
 
   <section id="app" class="hidden">
-    <div class="hero card">
-      <div><div class="eyebrow">HOOFDCATEGORIE</div><h2>Staatsinrichting</h2><p>Train begrippen die je voor het VMBO-examen moet kennen.</p></div>
-      <div class="progress-ring"><span id="masteryPct">0%</span><small>beheerst</small></div>
-    </div>
-
-    <div class="stats">
-      <div class="stat card"><b id="score">0</b><span>punten</span></div>
-      <div class="stat card"><b id="correct">0</b><span>goed</span></div>
-      <div class="stat card"><b id="wrong">0</b><span>opnieuw</span></div>
-      <div class="stat card"><b id="streak">0</b><span>reeks</span></div>
-    </div>
-    <section class="rank-card card">
-      <div class="rank-main">
-        <div class="rank-emblem" id="rankIcon">🕯️</div>
+    <section id="homeScreen">
+      <div class="home-hero card">
         <div>
-          <div class="eyebrow">MIJN RANG</div>
-          <h2 id="rankTitle">Historische Rekruut</h2>
-          <strong id="rankScore">0 punten</strong>
+          <div class="eyebrow">VMBO • EXAMENTRAINER</div>
+          <h2>Welkom terug</h2>
+          <p>Neem rustig de tijd om je voortgang te bekijken en kies daarna wat je wilt oefenen.</p>
+        </div>
+        <div class="home-rank">
+          <div id="rankIcon" class="rank-emblem">🕯️</div>
+          <div>
+            <div class="eyebrow">MIJN RANG</div>
+            <strong id="rankTitle">Historische Rekruut</strong>
+            <div id="rankScore">0 punten</div>
+          </div>
         </div>
       </div>
-      <div class="rank-progress"><div id="rankBar"></div></div>
-      <div id="nextRankText" class="next-rank">Nog 100 punten tot 📜 Tijdreiziger</div>
+
+      <section class="dashboard-grid">
+        <div class="dashboard-card card">
+          <div class="dashboard-label">📚 Voortgang</div>
+          <div class="dashboard-big" id="masteryPctHome">0%</div>
+          <div class="bar"><div id="barFillHome"></div></div>
+          <div id="progressTextHome">0 van 87 beheerst</div>
+        </div>
+        <div class="dashboard-card card">
+          <div class="dashboard-label">📅 Vandaag</div>
+          <div class="dashboard-big" id="todayCount">0</div>
+          <div>vragen gemaakt</div>
+        </div>
+        <div class="dashboard-card card">
+          <div class="dashboard-label">❌ Fout beantwoord</div>
+          <div class="dashboard-big" id="wrongHome">0</div>
+          <div>foute pogingen totaal</div>
+        </div>
+        <div class="dashboard-card card">
+          <div class="dashboard-label">🔥 Huidige reeks</div>
+          <div class="dashboard-big" id="streakHome">0</div>
+          <div>goede antwoorden op rij</div>
+        </div>
+      </section>
+
+      <section class="rank-card card">
+        <div class="rank-main">
+          <div>
+            <div class="eyebrow">VOLGENDE RANG</div>
+            <div id="nextRankText">Nog 100 punten tot 📜 Tijdreiziger</div>
+          </div>
+        </div>
+        <div class="rank-progress"><div id="rankBar"></div></div>
+      </section>
+
+      <section class="home-actions card">
+        <div>
+          <div class="eyebrow">STAATSINRICHTING</div>
+          <h3>Klaar om te oefenen?</h3>
+          <p>Oefen de begrippen van Staatsinrichting. Foute vragen komen later opnieuw terug.</p>
+        </div>
+        <button id="startTrainingBtn" class="primary big-button">📚 Start met oefenen</button>
+      </section>
+
+      <section class="progress-card card">
+        <div class="section-title"><h3>Mijn voortgang</h3><span id="progressText">0 van 87 beheerst</span></div>
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="mastery-note">Een begrip telt als beheerst wanneer je het meerdere keren goed beantwoordt.</div>
+      </section>
     </section>
 
-    <section class="trainer card">
-      <div class="question-head"><span id="questionNo">Vraag 1</span><span id="categoryBadge">Staatsinrichting</span></div>
-      <div id="question" class="question">Laden…</div>
-      <p class="hint">Typ het begrip dat bij deze omschrijving hoort.</p>
-      <input id="answer" class="answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Jouw antwoord…">
-      <div class="actions"><button id="checkBtn" class="primary">Controleer</button><button id="skipBtn" class="ghost">Overslaan</button></div>
-      <div id="feedback" class="feedback" aria-live="polite"></div><button id="nextBtn" class="primary hidden">Volgende vraag →</button>
-    </section>
+    <section id="trainerScreen" class="hidden">
+      <div class="trainer-top card">
+        <button id="backHomeBtn" class="ghost">← Overzicht</button>
+        <span>🏛️ Staatsinrichting</span>
+      </div>
 
-    <section class="progress-card card">
-      <div class="section-title"><h3>Mijn voortgang</h3><span id="progressText">0 van 0 beheerst</span></div>
-      <div class="bar"><div id="barFill"></div></div>
-      <div class="mastery-note">Een begrip telt als beheerst wanneer je het meerdere keren goed beantwoordt. Foute antwoorden komen opnieuw terug.</div>
+      <div class="stats">
+        <div class="stat card"><b id="score">0</b><span>punten</span></div>
+        <div class="stat card"><b id="correct">0</b><span>goed</span></div>
+        <div class="stat card"><b id="wrong">0</b><span>opnieuw</span></div>
+        <div class="stat card"><b id="streak">0</b><span>reeks</span></div>
+      </div>
+
+      <section class="trainer card">
+        <div class="question-head"><span id="questionNo">Vraag 1</span><span id="categoryBadge">Staatsinrichting</span></div>
+        <div id="question" class="question">Laden…</div>
+        <p class="hint">Typ het begrip dat bij deze omschrijving hoort.</p>
+        <input id="answer" class="answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Jouw antwoord…">
+        <div class="actions"><button id="checkBtn" class="primary">Controleer</button><button id="skipBtn" class="ghost">Overslaan</button></div>
+        <div id="feedback" class="feedback" aria-live="polite"></div><button id="nextBtn" class="primary hidden">Volgende vraag →</button>
+      </section>
+
+      <section class="progress-card card">
+        <div class="section-title"><h3>Mijn voortgang</h3><span id="progressTextTrainer">0 van 87 beheerst</span></div>
+        <div class="bar"><div id="barFillTrainer"></div></div>
+      </section>
     </section>
   </section>
-
-
   <section id="rankUp" class="modal hidden" aria-modal="true">
     <div class="modal-box card rank-up-box">
       <div class="rank-up-burst">🎉</div>
@@ -102,8 +156,8 @@
   </section>
 </main>
 <footer>© 2026 Harm de Jong • Examentrainer Geschiedenis • VMBO</footer>
-<script src="config.js?v=8"></script>
-<script src="questions.js?v=8"></script>
-<script src="app.js?v=8"></script>
+<script src="config.js?v=9"></script>
+<script src="questions.js?v=9"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

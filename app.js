@@ -15,7 +15,7 @@ const RANKS = [
 
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
   unlocked: false, score: 0, correct: 0, wrong: 0, streak: 0,
-  mastery: {}, queue: [], asked: 0
+  mastery: {}, queue: [], asked: 0, daily: {}, lastDate: ''
 };
 
 let current = null;
@@ -64,6 +64,26 @@ function save() {
   localStorage.setItem(STORAGE, JSON.stringify(state));
 }
 
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function updateDaily() {
+  const key = todayKey();
+  const count = state.daily?.[key] || 0;
+  $('todayCount').textContent = count;
+}
+
+function recordQuestionToday() {
+  const key = todayKey();
+  if (!state.daily) state.daily = {};
+  state.daily[key] = (state.daily[key] || 0) + 1;
+  // Keep a sensible amount of history in localStorage.
+  const keys = Object.keys(state.daily).sort();
+  if (keys.length > 60) delete state.daily[keys[0]];
+}
+
 function updateRank() {
   const rank = getRank(state.score);
   const next = getNextRank(state.score);
@@ -92,6 +112,14 @@ function updateStats() {
   $('masteryPct').textContent = pct + '%';
   $('progressText').textContent = `${mastered} van ${total} beheerst`;
   $('barFill').style.width = pct + '%';
+  if ($('progressTextHome')) $('progressTextHome').textContent = `${mastered} van ${total} beheerst`;
+  if ($('barFillHome')) $('barFillHome').style.width = pct + '%';
+  if ($('progressTextTrainer')) $('progressTextTrainer').textContent = `${mastered} van ${total} beheerst`;
+  if ($('barFillTrainer')) $('barFillTrainer').style.width = pct + '%';
+  if ($('masteryPctHome')) $('masteryPctHome').textContent = pct + '%';
+  if ($('wrongHome')) $('wrongHome').textContent = state.wrong;
+  if ($('streakHome')) $('streakHome').textContent = state.streak;
+  updateDaily();
   updateRank();
 }
 
@@ -129,6 +157,7 @@ function nextQuestion() {
   current = { ...BANK[idx], idx };
   answered = false;
   state.asked++;
+  recordQuestionToday();
 
   $('questionNo').textContent = `Vraag ${state.asked}`;
   $('question').textContent = displayQuestion(current.question);
@@ -205,14 +234,25 @@ function unlock() {
 function showApp() {
   $('gate').classList.add('hidden');
   $('app').classList.remove('hidden');
+  $('homeScreen').classList.remove('hidden');
+  $('trainerScreen').classList.add('hidden');
   updateStats();
-  nextQuestion();
 }
 
 $('unlockBtn').onclick = unlock;
 $('accessCode').onkeydown = e => { if (e.key === 'Enter') unlock(); };
 $('checkBtn').onclick = check;
 $('nextBtn').onclick = nextQuestion;
+$('startTrainingBtn').onclick = () => {
+  $('homeScreen').classList.add('hidden');
+  $('trainerScreen').classList.remove('hidden');
+  nextQuestion();
+};
+$('backHomeBtn').onclick = () => {
+  $('trainerScreen').classList.add('hidden');
+  $('homeScreen').classList.remove('hidden');
+  updateStats();
+};
 $('answer').onkeydown = e => { if (e.key === 'Enter') check(); };
 $('skipBtn').onclick = () => {
   if (current && !answered) {
@@ -290,5 +330,6 @@ $('resetBtn').onclick = () => {
 
 updateInstallButton();
 updateStats();
+updateDaily();
 if (state.unlocked) showApp();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=6').catch(() => {});

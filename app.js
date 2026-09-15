@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV11';
+const STORAGE = 'geschiedenisTrainerV12';
 
 const RANKS = [
   { min: 0,    icon: '🕯️', title: 'Historische Rekruut' },
@@ -14,7 +14,7 @@ const RANKS = [
 ];
 
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
-  unlocked: false, score: 0, correct: 0, wrong: 0, streak: 0,
+  unlocked: false, studentName: '', score: 0, correct: 0, wrong: 0, streak: 0,
   mastery: {}, queue: [], asked: 0, daily: {}, lastDate: ''
 };
 
@@ -35,12 +35,29 @@ function answersMatch(given, expected) {
   const a = answerNorm(given);
   const b = answerNorm(expected);
   if (a === b) return true;
-  if (a + 'e' === b) return true;
-  if (b + 'e' === a) return true;
+
+  // Accept simple Dutch singular/plural variants.
+  // This intentionally handles common endings without making spelling
+  // errors broadly acceptable.
+  const variants = s => {
+    const out = new Set([s]);
+    if (s.endsWith('s')) out.add(s.slice(0, -1));
+    if (s.endsWith('en')) out.add(s.slice(0, -2));
+    if (s.endsWith('eren')) out.add(s.slice(0, -2)); // e.g. ...
+    if (s.endsWith('e')) out.add(s.slice(0, -1));
+    else out.add(s + 'e');
+    out.add(s + 's');
+    out.add(s + 'en');
+    return out;
+  };
+
+  for (const av of variants(a)) {
+    for (const bv of variants(b)) {
+      if (av === bv) return true;
+    }
+  }
   return false;
 }
-
-const BANK = Array.isArray(QUESTIONS[0]) ? QUESTIONS.flat() : QUESTIONS;
 
 function displayQuestion(text) {
   // Alleen de eerste letter van de omschrijving wordt netjes als zin weergegeven.
@@ -99,6 +116,13 @@ function updateRank() {
     $('rankBar').style.width = '100%';
     $('nextRankText').textContent = 'Je hebt de hoogste rang bereikt!';
   }
+}
+
+function updateMasteryNow() {
+  const mastered = Object.values(state.mastery || {}).filter(v => Number(v) >= 3).length;
+  const total = Array.isArray(questions) ? questions.length : 0;
+  const el = $('masteredCount');
+  if (el) el.textContent = `${mastered}/${total}`;
 }
 
 function updateStats() {
@@ -218,6 +242,7 @@ function check() {
   $('checkBtn').disabled = true;
   $('nextBtn').classList.remove('hidden');
   updateStats();
+  updateMasteryNow();
   save();
 
   if (newRank.min > oldRank.min) {
@@ -229,9 +254,33 @@ function check() {
   }
 }
 
+function updateStudentName() {
+  const name = String(state.studentName || '').trim();
+  const display = $('studentNameDisplay');
+  if (display) display.textContent = name || 'leerling';
+}
+
 function unlock() {
+  const name = String($('studentName')?.value || state.studentName || '').trim();
+
+  // Als de leerling al eerder is ingelogd, is de docentcode niet opnieuw nodig.
+  if (state.unlocked) {
+    if (name) state.studentName = name;
+    save();
+    showApp();
+    return;
+  }
+
+  if (!name) {
+    $('gateMsg').textContent = 'Vul eerst je naam in.';
+    $('gateMsg').className = 'msg error';
+    $('studentName').focus();
+    return;
+  }
+
   if (norm($('accessCode').value) === norm(APP_CONFIG.teacherCode)) {
     state.unlocked = true;
+    state.studentName = name;
     save();
     showApp();
   } else {
@@ -246,9 +295,13 @@ function showApp() {
   $('homeScreen').classList.remove('hidden');
   $('trainerScreen').classList.add('hidden');
   updateStats();
+  updateMasteryNow();
 }
 
 $('unlockBtn').onclick = unlock;
+$('studentName').onkeydown = e => { if (e.key === 'Enter') $('accessCode').focus(); };
+$('studentName').value = state.studentName || '';
+updateStudentName();
 $('accessCode').onkeydown = e => { if (e.key === 'Enter') unlock(); };
 $('checkBtn').onclick = check;
 $('nextBtn').onclick = nextQuestion;
@@ -261,6 +314,7 @@ $('backHomeBtn').onclick = () => {
   $('trainerScreen').classList.add('hidden');
   $('homeScreen').classList.remove('hidden');
   updateStats();
+  updateMasteryNow();
 };
 $('answer').onkeydown = e => { if (e.key === 'Enter') check(); };
 $('skipBtn').onclick = () => {
@@ -339,6 +393,7 @@ $('resetBtn').onclick = () => {
 
 updateInstallButton();
 updateStats();
+  updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=11').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=13').catch(() => {});

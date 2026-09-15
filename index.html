@@ -24,6 +24,9 @@
     <div class="seal">⚜</div>
     <h2>Welkom bij de examentrainer</h2>
     <p>Deze trainer is bedoeld voor het VMBO-examen Geschiedenis. Om mee te doen moet je eerst toestemming van je docent hebben.</p>
+    <div class="gate-actions name-row">
+      <input id="studentName" autocomplete="name" placeholder="Jouw naam" aria-label="Jouw naam">
+    </div>
     <div class="gate-actions">
       <input id="accessCode" autocomplete="off" placeholder="Voer de docentcode in" aria-label="Docentcode">
       <button id="unlockBtn" class="primary">Toegang krijgen</button>
@@ -42,7 +45,7 @@
       <div class="home-hero card">
         <div>
           <div class="eyebrow">VMBO • EXAMENTRAINER</div>
-          <h2>Welkom terug</h2>
+          <h2>Welkom terug, <span id="studentNameDisplay">leerling</span>!</h2>
           <p>Neem rustig de tijd om je voortgang te bekijken en kies daarna wat je wilt oefenen.</p>
         </div>
         <div class="home-rank">
@@ -156,8 +159,8 @@
   </section>
 </main>
 <footer>© 2026 Harm de Jong • Examentrainer Geschiedenis • VMBO</footer>
-<script src="config.js?v=11"></script>
-<script src="questions.js?v=11"></script>
-<script src="app.js?v=11"></script>
+<script src="config.js?v=13"></script>
+<script src="questions.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>

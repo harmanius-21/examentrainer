@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#1d2a35">
+  <meta name="description" content="Examentrainer VMBO Geschiedenis – Staatsinrichting">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <title>Examentrainer Geschiedenis</title>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <img src="logo.svg" alt="Logo Examentrainer Geschiedenis">
+    <div><div class="eyebrow">VMBO • EXAMENTRAINER</div><h1>Geschiedenis</h1></div>
+  </div>
+  <button id="teacherBtn" class="ghost">Docent</button>
+</header>
+
+<main>
+  <section id="gate" class="screen card">
+    <div class="seal">⚜</div>
+    <h2>Welkom bij de examentrainer</h2>
+    <p>Deze trainer is bedoeld voor het VMBO-examen Geschiedenis. Om mee te doen moet je eerst toestemming van je docent hebben.</p>
+    <div class="gate-actions">
+      <input id="accessCode" autocomplete="off" placeholder="Voer de docentcode in" aria-label="Docentcode">
+      <button id="unlockBtn" class="primary">Toegang krijgen</button>
+    </div>
+    <p id="gateMsg" class="msg"></p>
+    <small>Vraag de toegangscode aan je docent.</small>
+  </section>
+
+  <section id="app" class="hidden">
+    <div class="hero card">
+      <div><div class="eyebrow">HOOFDCATEGORIE</div><h2>Staatsinrichting</h2><p>Train begrippen die je voor het VMBO-examen moet kennen.</p></div>
+      <div class="progress-ring"><span id="masteryPct">0%</span><small>beheerst</small></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat card"><b id="score">0</b><span>punten</span></div>
+      <div class="stat card"><b id="correct">0</b><span>goed</span></div>
+      <div class="stat card"><b id="wrong">0</b><span>opnieuw</span></div>
+      <div class="stat card"><b id="streak">0</b><span>reeks</span></div>
+    </div>
+
+    <section class="trainer card">
+      <div class="question-head"><span id="questionNo">Vraag 1</span><span id="categoryBadge">Staatsinrichting</span></div>
+      <div id="question" class="question">Laden…</div>
+      <p class="hint">Typ het begrip dat bij deze omschrijving hoort.</p>
+      <input id="answer" class="answer" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Jouw antwoord…">
+      <div class="actions"><button id="checkBtn" class="primary">Controleer</button><button id="skipBtn" class="ghost">Overslaan</button></div>
+      <div id="feedback" class="feedback" aria-live="polite"></div>
+    </section>
+
+    <section class="progress-card card">
+      <div class="section-title"><h3>Mijn voortgang</h3><span id="progressText">0 van 0 beheerst</span></div>
+      <div class="bar"><div id="barFill"></div></div>
+      <div class="mastery-note">Een begrip telt als beheerst wanneer je het meerdere keren goed beantwoordt. Foute antwoorden komen opnieuw terug.</div>
+    </section>
+  </section>
+
+  <section id="teacherPanel" class="modal hidden" aria-modal="true">
+    <div class="modal-box card">
+      <button id="closeTeacher" class="close">×</button>
+      <div class="seal small">⚜</div><h2>Docentmodus</h2>
+      <p>Met de docentcode kan een leerling toegang krijgen. De standaardcode staat in <code>config.js</code> en kan vóór publicatie worden gewijzigd.</p>
+      <div class="codebox"><span>Docentcode</span><b>Stel deze in via config.js</b></div>
+      <button id="resetBtn" class="danger">Leerlingvoortgang op dit apparaat wissen</button>
+      <p class="tiny">Let op: GitHub Pages is een statische website. Deze code is geschikt voor een eenvoudige toestemmingsstap, maar is géén beveiligde schoollogin. Voor echte docentaccounts en centrale toestemming is een backend nodig.</p>
+    </div>
+  </section>
+</main>
+<footer>© 2026 Harm de Jong • Examentrainer Geschiedenis • VMBO</footer>
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

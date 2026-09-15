@@ -1,34 +1,78 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV3';
+const STORAGE = 'geschiedenisTrainerV5';
+
+const RANKS = [
+  { min: 0,    icon: '🕯️', title: 'Historische Rekruut' },
+  { min: 100,  icon: '📜', title: 'Tijdreiziger' },
+  { min: 250,  icon: '🏛️', title: 'Geschiedenisleerling' },
+  { min: 500,  icon: '🗺️', title: 'Historisch Ontdekker' },
+  { min: 750,  icon: '🎓', title: 'Examenkenner' },
+  { min: 1000, icon: '🏆', title: 'Historische Meester' },
+  { min: 1500, icon: '👑', title: 'Meester van het Verleden' },
+  { min: 2500, icon: '⚜️', title: 'Grootmeester Geschiedenis' },
+  { min: 5000, icon: '👑', title: 'Legende van de Geschiedenis' }
+];
 
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
-  unlocked: false,
-  score: 0,
-  correct: 0,
-  wrong: 0,
-  streak: 0,
-  mastery: {},
-  queue: [],
-  asked: 0
+  unlocked: false, score: 0, correct: 0, wrong: 0, streak: 0,
+  mastery: {}, queue: [], asked: 0
 };
 
 let current = null;
 let answered = false;
+
 const norm = s => String(s ?? '').toLowerCase().trim().replace(/\s+/g, ' ');
 const answerNorm = s => norm(s).replace(/\s+/g, '');
+
 function answersMatch(given, expected) {
   const a = answerNorm(given);
   const b = answerNorm(expected);
   if (a === b) return true;
-  // Een ontbrekende of extra e aan het einde wordt toegestaan.
+  // Eén ontbrekende of extra e aan het einde is toegestaan.
   if (a + 'e' === b) return true;
   if (b + 'e' === a) return true;
   return false;
 }
+
 const BANK = Array.isArray(QUESTIONS[0]) ? QUESTIONS.flat() : QUESTIONS;
+
+function displayQuestion(text) {
+  // Alleen de eerste letter van de omschrijving wordt netjes als zin weergegeven.
+  // De rest van de oorspronkelijke spelling blijft behouden.
+  const s = String(text ?? '').trim();
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+function getRank(score) {
+  let rank = RANKS[0];
+  for (const r of RANKS) if (score >= r.min) rank = r;
+  return rank;
+}
+
+function getNextRank(score) {
+  for (const r of RANKS) if (score < r.min) return r;
+  return null;
+}
 
 function save() {
   localStorage.setItem(STORAGE, JSON.stringify(state));
+}
+
+function updateRank() {
+  const rank = getRank(state.score);
+  const next = getNextRank(state.score);
+  $('rankIcon').textContent = rank.icon;
+  $('rankTitle').textContent = rank.title;
+  $('rankScore').textContent = `${state.score} punten`;
+  if (next) {
+    const range = next.min - rank.min;
+    const progress = Math.max(0, Math.min(100, Math.round((state.score - rank.min) / range * 100)));
+    $('rankBar').style.width = progress + '%';
+    $('nextRankText').textContent = `Nog ${next.min - state.score} punten tot ${next.icon} ${next.title}`;
+  } else {
+    $('rankBar').style.width = '100%';
+    $('nextRankText').textContent = 'Je hebt de hoogste rang bereikt!';
+  }
 }
 
 function updateStats() {
@@ -42,18 +86,16 @@ function updateStats() {
   $('masteryPct').textContent = pct + '%';
   $('progressText').textContent = `${mastered} van ${total} beheerst`;
   $('barFill').style.width = pct + '%';
+  updateRank();
 }
 
 function buildQueue() {
-  // Begrippen die nog weinig beheerst zijn, komen vaker terug.
   const weighted = [];
   BANK.forEach((q, i) => {
     const mastery = state.mastery[i] || 0;
     const weight = Math.max(1, 4 - mastery);
     for (let n = 0; n < weight; n++) weighted.push(i);
   });
-
-  // Schudden zonder sorteerfunctie met een willekeurige comparator.
   for (let i = weighted.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [weighted[i], weighted[j]] = [weighted[j], weighted[i]];
@@ -66,16 +108,13 @@ function nextQuestion() {
     $('question').textContent = 'Er zijn geen vragen geladen.';
     return;
   }
-
   if (!state.queue.length) buildQueue();
-
   const idx = state.queue.shift();
   current = { ...BANK[idx], idx };
   answered = false;
   state.asked++;
-
   $('questionNo').textContent = `Vraag ${state.asked}`;
-  $('question').textContent = current.question;
+  $('question').textContent = displayQuestion(current.question);
   $('answer').value = '';
   $('answer').disabled = false;
   $('checkBtn').disabled = false;
@@ -83,13 +122,13 @@ function nextQuestion() {
   $('nextBtn').classList.add('hidden');
   $('feedback').className = 'feedback';
   $('feedback').textContent = '';
-  $('answer').focus();
   save();
+  // Op mobiel het veld zichtbaar houden, maar het toetsenbord niet onnodig openen.
+  if (window.matchMedia('(min-width: 700px)').matches) $('answer').focus();
 }
 
 function check() {
   if (!current || answered) return;
-
   const given = norm($('answer').value);
   if (!given) {
     $('feedback').className = 'feedback error';
@@ -100,6 +139,7 @@ function check() {
 
   answered = true;
   const ok = current.answers.some(a => answersMatch(given, a));
+  const oldRank = getRank(state.score);
 
   if (ok) {
     state.correct++;
@@ -113,17 +153,25 @@ function check() {
     state.score = Math.max(0, state.score - 2);
     state.streak = 0;
     state.mastery[current.idx] = Math.max(0, (state.mastery[current.idx] || 0) - 1);
-    // Foute vraag komt gegarandeerd terug.
     state.queue.push(current.idx);
     $('feedback').className = 'feedback error';
     $('feedback').textContent = `✗ Nog niet goed. Goed antwoord: ${current.answers.join(' / ')}`;
   }
 
+  const newRank = getRank(state.score);
   $('answer').disabled = true;
   $('checkBtn').disabled = true;
   $('nextBtn').classList.remove('hidden');
   updateStats();
   save();
+
+  if (newRank.min > oldRank.min) {
+    setTimeout(() => {
+      $('rankUpIcon').textContent = newRank.icon;
+      $('rankUpTitle').textContent = newRank.title;
+      $('rankUp').classList.remove('hidden');
+    }, 350);
+  }
 }
 
 function unlock() {
@@ -156,8 +204,10 @@ $('skipBtn').onclick = () => {
     nextQuestion();
   }
 };
+$('closeRankUp').onclick = () => $('rankUp').classList.add('hidden');
 $('teacherBtn').onclick = () => $('teacherPanel').classList.remove('hidden');
 $('closeTeacher').onclick = () => $('teacherPanel').classList.add('hidden');
+
 let deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
@@ -173,10 +223,10 @@ $('installBtn').onclick = async () => {
 };
 window.addEventListener('appinstalled', () => $('installBtn').classList.add('hidden'));
 
-// Zorg dat het antwoordveld en de knoppen zichtbaar blijven boven het mobiele toetsenbord.
 $('answer').addEventListener('focus', () => {
   setTimeout(() => $('answer').scrollIntoView({behavior:'smooth', block:'center'}), 250);
 });
+
 $('resetBtn').onclick = () => {
   if (confirm('Weet je zeker dat je de voortgang op dit apparaat wilt wissen?')) {
     localStorage.removeItem(STORAGE);
@@ -186,4 +236,4 @@ $('resetBtn').onclick = () => {
 
 updateStats();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=4').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=5').catch(() => {});

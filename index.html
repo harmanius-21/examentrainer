@@ -44,6 +44,18 @@
       <div class="stat card"><b id="wrong">0</b><span>opnieuw</span></div>
       <div class="stat card"><b id="streak">0</b><span>reeks</span></div>
     </div>
+    <section class="rank-card card">
+      <div class="rank-main">
+        <div class="rank-emblem" id="rankIcon">🕯️</div>
+        <div>
+          <div class="eyebrow">MIJN RANG</div>
+          <h2 id="rankTitle">Historische Rekruut</h2>
+          <strong id="rankScore">0 punten</strong>
+        </div>
+      </div>
+      <div class="rank-progress"><div id="rankBar"></div></div>
+      <div id="nextRankText" class="next-rank">Nog 100 punten tot 📜 Tijdreiziger</div>
+    </section>
 
     <section class="trainer card">
       <div class="question-head"><span id="questionNo">Vraag 1</span><span id="categoryBadge">Staatsinrichting</span></div>
@@ -61,6 +73,18 @@
     </section>
   </section>
 
+
+  <section id="rankUp" class="modal hidden" aria-modal="true">
+    <div class="modal-box card rank-up-box">
+      <div class="rank-up-burst">🎉</div>
+      <div class="eyebrow">NIEUWE RANG!</div>
+      <div id="rankUpIcon" class="rank-emblem">🏆</div>
+      <h2 id="rankUpTitle">Historische Meester</h2>
+      <p>Gefeliciteerd! Je hebt een nieuwe rang bereikt.</p>
+      <button id="closeRankUp" class="primary">Doorgaan →</button>
+    </div>
+  </section>
+
   <section id="teacherPanel" class="modal hidden" aria-modal="true">
     <div class="modal-box card">
       <button id="closeTeacher" class="close">×</button>
@@ -73,8 +97,8 @@
   </section>
 </main>
 <footer>© 2026 Harm de Jong • Examentrainer Geschiedenis • VMBO</footer>
-<script src="config.js?v=4"></script>
-<script src="questions.js?v=4"></script>
-<script src="app.js?v=4"></script>
+<script src="config.js?v=5"></script>
+<script src="questions.js?v=5"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

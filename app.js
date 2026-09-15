@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV12';
+const STORAGE = 'geschiedenisTrainerV14';
 
 const RANKS = [
   { min: 0,    icon: '🕯️', title: 'Historische Rekruut' },
@@ -23,6 +23,14 @@ let answered = false;
 let lastQuestionIndex = null;
 
 const norm = s => String(s ?? '').toLowerCase().trim().replace(/\s+/g, ' ');
+
+
+function ensureQuestionsLoaded() {
+  if (Array.isArray(window.QUESTIONS) && window.QUESTIONS.length) {
+    questions = window.QUESTIONS;
+  }
+  return Array.isArray(questions) && questions.length > 0;
+}
 
 function answerNorm(s) {
   return norm(s)

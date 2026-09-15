@@ -1,5 +1,4 @@
 const QUESTIONS = [
-[
   {
     "answers": [
       "Monarchie"
@@ -570,5 +569,4 @@ const QUESTIONS = [
     ],
     "question": "Dit type grondrechten bieden bescherming dóór de overheid sinds 1983"
   }
-]
 ];

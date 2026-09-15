@@ -20,15 +20,21 @@ let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
 
 let current = null;
 let answered = false;
+let lastQuestionIndex = null;
 
 const norm = s => String(s ?? '').toLowerCase().trim().replace(/\s+/g, ' ');
-const answerNorm = s => norm(s).replace(/\s+/g, '');
+
+function answerNorm(s) {
+  return norm(s)
+    .replace(/^[\s.,;:!?]+|[\s.,;:!?]+$/g, '')
+    .replace(/^(de|het|een)\s+/, '')
+    .replace(/[\s-]+/g, '');
+}
 
 function answersMatch(given, expected) {
   const a = answerNorm(given);
   const b = answerNorm(expected);
   if (a === b) return true;
-  // Eén ontbrekende of extra e aan het einde is toegestaan.
   if (a + 'e' === b) return true;
   if (b + 'e' === a) return true;
   return false;
@@ -109,10 +115,21 @@ function nextQuestion() {
     return;
   }
   if (!state.queue.length) buildQueue();
+
+  // Voorkom dat dezelfde vraag direct opnieuw verschijnt.
+  if (lastQuestionIndex !== null && state.queue.length > 1 && state.queue[0] === lastQuestionIndex) {
+    const alternate = state.queue.findIndex(i => i !== lastQuestionIndex);
+    if (alternate > 0) {
+      [state.queue[0], state.queue[alternate]] = [state.queue[alternate], state.queue[0]];
+    }
+  }
+
   const idx = state.queue.shift();
+  lastQuestionIndex = idx;
   current = { ...BANK[idx], idx };
   answered = false;
   state.asked++;
+
   $('questionNo').textContent = `Vraag ${state.asked}`;
   $('question').textContent = displayQuestion(current.question);
   $('answer').value = '';
@@ -123,7 +140,7 @@ function nextQuestion() {
   $('feedback').className = 'feedback';
   $('feedback').textContent = '';
   save();
-  // Op mobiel het veld zichtbaar houden, maar het toetsenbord niet onnodig openen.
+
   if (window.matchMedia('(min-width: 700px)').matches) $('answer').focus();
 }
 

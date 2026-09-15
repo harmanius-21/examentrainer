@@ -141,7 +141,8 @@ const QUESTIONS = [
   },
   {
     "answers": [
-      "Willem-Alexander"
+      "Willem-Alexander",
+      "Willem Alexander"
     ],
     "question": "Eerste mannelijke staatshoofd sinds Willem III"
   },

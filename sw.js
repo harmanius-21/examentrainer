@@ -1,5 +1,5 @@
-const CACHE = 'geschiedenis-v7';
-const FILES = ['./','./index.html','./style.css','./config.js?v=7','./questions.js?v=7','./app.js?v=7','./manifest.json','./logo.svg'];
+const CACHE = 'geschiedenis-v8';
+const FILES = ['./','./index.html','./style.css','./config.js?v=8','./questions.js?v=8','./app.js?v=8','./manifest.json','./logo.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
 });

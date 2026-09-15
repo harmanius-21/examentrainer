@@ -218,17 +218,13 @@ function isInstalled() {
 
 function updateInstallButton() {
   const btn = $('installBtn');
-  const help = $('installHelp');
   if (!btn) return;
+  // Always show on the welcome screen unless the app is already installed.
   if (isInstalled()) {
     btn.classList.add('hidden');
-    if (help) help.classList.add('hidden');
     return;
   }
-  // The button is visible on the welcome screen. If the browser supplies
-  // the native install prompt, clicking it opens that prompt.
   btn.classList.remove('hidden');
-  if (help) help.classList.add('hidden');
 }
 
 window.addEventListener('beforeinstallprompt', e => {
@@ -238,15 +234,28 @@ window.addEventListener('beforeinstallprompt', e => {
 });
 
 $('installBtn').onclick = async () => {
+  const help = $('installInstructions');
   if (deferredInstallPrompt) {
     deferredInstallPrompt.prompt();
     const result = await deferredInstallPrompt.userChoice;
     deferredInstallPrompt = null;
-    if (result.outcome === 'accepted') $('installBtn').classList.add('hidden');
+    if (result.outcome === 'accepted') {
+      $('installBtn').classList.add('hidden');
+      if (help) help.classList.add('hidden');
+    }
     return;
   }
-  // Some browsers (and iOS) do not expose beforeinstallprompt.
-  $('installHelp').classList.remove('hidden');
+
+  // Fallback: give platform-specific instructions.
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (help) {
+    help.classList.remove('hidden');
+    if (ios) {
+      help.innerHTML = '<b>iPhone/iPad:</b> tik op <b>Deel</b> en kies <b>Zet op beginscherm</b>.';
+    } else {
+      help.innerHTML = '<b>Android:</b> tik rechtsboven op <b>⋮</b> en kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.';
+    }
+  }
 };
 
 window.addEventListener('appinstalled', () => $('installBtn').classList.add('hidden'));

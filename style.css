@@ -23,3 +23,13 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
 
 .install-gate{width:100%;margin-top:12px}
 #installHelp{margin-top:8px}
+
+.install-instructions{
+  margin:10px 0 0;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.12);
+  background:rgba(255,255,255,.65);
+  line-height:1.45;
+}
+.install-note{margin-top:8px}

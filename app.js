@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV6';
+const STORAGE = 'geschiedenisTrainerV11';
 
 const RANKS = [
   { min: 0,    icon: '🕯️', title: 'Historische Rekruut' },
@@ -210,7 +210,7 @@ function check() {
     $('feedback').innerHTML =
       `<div class="feedback-title">✗ Nog niet goed</div>
        <div><b>Goed antwoord:</b> ${escapeHtml(current.answers.join(' / '))}</div>
-       ${current.explanation ? `<div class="explanation"><b>Uitleg:</b><br>${escapeHtml(current.explanation)}</div>` : ''}`;
+       <div class="explanation"><b>Uitleg:</b><br>${escapeHtml(current.explanation || 'Voor deze vraag is nog geen uitgebreide uitleg beschikbaar.')}</div>`;
   }
 
   const newRank = getRank(state.score);
@@ -341,4 +341,4 @@ updateInstallButton();
 updateStats();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=6').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=11').catch(() => {});

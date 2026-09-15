@@ -59,3 +59,13 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
   .dashboard-card{padding:14px}
   .dashboard-big{font-size:1.7rem}
 }
+
+.feedback-title{font-weight:800;margin-bottom:5px}
+.explanation{
+  margin-top:12px;
+  padding:12px 14px;
+  border-left:4px solid currentColor;
+  border-radius:8px;
+  background:rgba(255,255,255,.55);
+  line-height:1.5;
+}

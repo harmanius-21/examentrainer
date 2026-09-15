@@ -173,6 +173,12 @@ function nextQuestion() {
   if (window.matchMedia('(min-width: 700px)').matches) $('answer').focus();
 }
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+
 function check() {
   if (!current || answered) return;
   const given = norm($('answer').value);
@@ -201,7 +207,10 @@ function check() {
     state.mastery[current.idx] = Math.max(0, (state.mastery[current.idx] || 0) - 1);
     state.queue.push(current.idx);
     $('feedback').className = 'feedback error';
-    $('feedback').textContent = `✗ Nog niet goed. Goed antwoord: ${current.answers.join(' / ')}`;
+    $('feedback').innerHTML =
+      `<div class="feedback-title">✗ Nog niet goed</div>
+       <div><b>Goed antwoord:</b> ${escapeHtml(current.answers.join(' / '))}</div>
+       ${current.explanation ? `<div class="explanation"><b>Uitleg:</b><br>${escapeHtml(current.explanation)}</div>` : ''}`;
   }
 
   const newRank = getRank(state.score);

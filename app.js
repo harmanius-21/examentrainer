@@ -1,4 +1,6 @@
 const $ = id => document.getElementById(id);
+// Ondersteunt zowel een platte vragenlijst als de huidige geneste export uit de Excel-database.
+const QUESTION_BANK = (Array.isArray(QUESTIONS) && QUESTIONS.length && Array.isArray(QUESTIONS[0])) ? QUESTIONS.flat() : QUESTIONS;
 const STORAGE='geschiedenisTrainerV1';
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {unlocked:false,score:0,correct:0,wrong:0,streak:0,mastery:{},queue:[],asked:0};
 let current=null;
@@ -6,16 +8,25 @@ const norm=s=>String(s).toLowerCase().trim().replace(/\s+/g,' ');
 function save(){localStorage.setItem(STORAGE,JSON.stringify(state));}
 function updateStats(){
   $('score').textContent=state.score; $('correct').textContent=state.correct; $('wrong').textContent=state.wrong; $('streak').textContent=state.streak;
-  const mastered=Object.values(state.mastery).filter(v=>v>=3).length, total=QUESTIONS.length, pct=total?Math.round(mastered/total*100):0;
+  const mastered=Object.values(state.mastery).filter(v=>v>=3).length, total=QUESTION_BANK.length, pct=total?Math.round(mastered/total*100):0;
   $('masteryPct').textContent=pct+'%'; $('progressText').textContent=`${mastered} van ${total} beheerst`; $('barFill').style.width=pct+'%';
 }
 function nextQuestion(){
   if(!state.queue.length){
-    const pool=QUESTIONS.filter((_,i)=>!state.queue.includes(i));
-    const weighted=[]; QUESTIONS.forEach((q,i)=>{const m=state.mastery[i]||0; const weight=Math.max(1,4-m); for(let n=0;n<weight;n++) weighted.push(i);});
+    const weighted=[];
+    QUESTION_BANK.forEach((q,i)=>{
+      if(!q || !q.question || !String(q.question).trim()) return;
+      const m=state.mastery[i]||0;
+      const weight=Math.max(1,4-m);
+      for(let n=0;n<weight;n++) weighted.push(i);
+    });
     state.queue=weighted.sort(()=>Math.random()-.5).slice(0,Math.min(weighted.length,30));
   }
-  const idx=state.queue.shift(); current={...QUESTIONS[idx],idx}; state.asked++;
+  if(!state.queue.length){
+    $('question').textContent='Er zijn nog geen geldige vragen beschikbaar.';
+    return;
+  }
+  const idx=state.queue.shift(); current={...QUESTION_BANK[idx],idx}; state.asked++;
   $('questionNo').textContent=`Vraag ${state.asked}`; $('question').textContent=current.question; $('answer').value=''; $('feedback').className='feedback'; $('feedback').textContent=''; $('answer').focus(); save();
 }
 function check(){

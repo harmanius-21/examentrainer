@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV5';
+const STORAGE = 'geschiedenisTrainerV6';
 
 const RANKS = [
   { min: 0,    icon: '🕯️', title: 'Historische Rekruut' },
@@ -209,18 +209,46 @@ $('teacherBtn').onclick = () => $('teacherPanel').classList.remove('hidden');
 $('closeTeacher').onclick = () => $('teacherPanel').classList.add('hidden');
 
 let deferredInstallPrompt = null;
+
+function isInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true ||
+    document.referrer.startsWith('android-app://');
+}
+
+function updateInstallButton() {
+  const btn = $('installBtn');
+  const help = $('installHelp');
+  if (!btn) return;
+  if (isInstalled()) {
+    btn.classList.add('hidden');
+    if (help) help.classList.add('hidden');
+    return;
+  }
+  // The button is visible on the welcome screen. If the browser supplies
+  // the native install prompt, clicking it opens that prompt.
+  btn.classList.remove('hidden');
+  if (help) help.classList.add('hidden');
+}
+
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  $('installBtn').classList.remove('hidden');
+  updateInstallButton();
 });
+
 $('installBtn').onclick = async () => {
-  if (!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  await deferredInstallPrompt.userChoice;
-  deferredInstallPrompt = null;
-  $('installBtn').classList.add('hidden');
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const result = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (result.outcome === 'accepted') $('installBtn').classList.add('hidden');
+    return;
+  }
+  // Some browsers (and iOS) do not expose beforeinstallprompt.
+  $('installHelp').classList.remove('hidden');
 };
+
 window.addEventListener('appinstalled', () => $('installBtn').classList.add('hidden'));
 
 $('answer').addEventListener('focus', () => {
@@ -234,6 +262,7 @@ $('resetBtn').onclick = () => {
   }
 };
 
+updateInstallButton();
 updateStats();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=5').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=6').catch(() => {});

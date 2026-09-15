@@ -20,3 +20,6 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
   .rank-card{padding:16px}
   .rank-emblem{font-size:2.25rem}
 }
+
+.install-gate{width:100%;margin-top:12px}
+#installHelp{margin-top:8px}

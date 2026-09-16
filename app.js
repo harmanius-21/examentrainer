@@ -16,21 +16,21 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV23'; // behouden zodat bestaande voortgang meegaat naar V24
+const STORAGE = 'geschiedenisTrainerV23'; // behoud bestaande voortgang
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
-  { min: 0, name: "Willem III", title: "Willem III", icon: "🏛️" },
-  { min: 100, name: "Schoof", title: "Schoof", icon: "🏛️" },
-  { min: 250, name: "Balkenende", title: "Balkenende", icon: "🏛️" },
-  { min: 500, name: "Juliana", title: "Juliana", icon: "🏛️" },
-  { min: 750, name: "Willem II", title: "Willem II", icon: "🏛️" },
-  { min: 1000, name: "Colijn", title: "Colijn", icon: "🏛️" },
-  { min: 1500, name: "Balkenende", title: "Balkenende", icon: "🏛️" },
-  { min: 2500, name: "Beatrix", title: "Beatrix", icon: "🏛️" },
-  { min: 5000, name: "Rutte", title: "Rutte", icon: "🏛️" },
-  { min: 7500, name: "Drees", title: "Drees", icon: "🏛️" },
-  { min: 10000, name: "Wilhelmina", title: "Wilhelmina", icon: "🏛️" }
+  { min: 0, name: "Willem III", title: "Willem III", icon: "👑" },
+  { min: 100, name: "Schoof", title: "Schoof", icon: "👑" },
+  { min: 250, name: "Balkenende", title: "Balkenende", icon: "👑" },
+  { min: 500, name: "Juliana", title: "Juliana", icon: "👑" },
+  { min: 750, name: "Willem II", title: "Willem II", icon: "👑" },
+  { min: 1000, name: "Colijn", title: "Colijn", icon: "👑" },
+  { min: 1500, name: "Balkenende", title: "Balkenende", icon: "👑" },
+  { min: 2500, name: "Beatrix", title: "Beatrix", icon: "👑" },
+  { min: 5000, name: "Rutte", title: "Rutte", icon: "👑" },
+  { min: 7500, name: "Drees", title: "Drees", icon: "👑" },
+  { min: 10000, name: "Wilhelmina", title: "Wilhelmina", icon: "👑" }
 ];
 
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
@@ -342,8 +342,37 @@ function updateStudentName() {
   if (display) display.textContent = name || 'leerling';
 }
 
+const NAME_ALLOWED = /^[\p{L}]+(?: [\p{L}]+)*$/u;
+// Veelvoorkomende grove, discriminerende of kwetsende woorden. Dit is geen volledige lijst.
+const BLOCKED_NAME_TERMS = [
+  'fuck','fucking','fucker','shit','shite','bitch','bastard','asshole','dick','piss','cunt',
+  'kanker','tering','tyfus','kut','klote','godver','godverdomme','hoer','slet','lul','mongool',
+  'homo','flikker','nigger','negro','jood','kike','chink','spic','wetback','retard','tranny',
+  'naz i','nazi','hitler'
+];
+
+function validStudentName(name) {
+  const value = String(name || '').trim().replace(/\s+/g, ' ');
+  if (!value || value.length > 40) return { ok:false, message:'Vul een naam in van maximaal 40 tekens.' };
+  if (!NAME_ALLOWED.test(value)) return { ok:false, message:'Je naam mag alleen uit letters en spaties bestaan.' };
+  const lower = value.toLocaleLowerCase('nl-NL');
+  const compact = lower.replace(/[ -]/g, '');
+  if (BLOCKED_NAME_TERMS.some(term => compact.includes(term.replace(/[^\p{L}]/gu,'')))) {
+    return { ok:false, message:'Deze naam kan niet worden gebruikt. Kies een normale, respectvolle naam.' };
+  }
+  return { ok:true, value };
+}
+
 function unlock() {
-  const name = String($('studentName')?.value || state.studentName || '').trim();
+  const rawName = String($('studentName')?.value || state.studentName || '').trim();
+  const nameCheck = validStudentName(rawName);
+  if (!nameCheck.ok) {
+    $('gateMsg').textContent = nameCheck.message;
+    $('gateMsg').className = 'msg error';
+    $('studentName').focus();
+    return;
+  }
+  const name = nameCheck.value;
 
   // Als de leerling al eerder is ingelogd, is de docentcode niet opnieuw nodig.
   if (state.unlocked) {
@@ -466,12 +495,34 @@ $('answer').addEventListener('focus', () => {
   setTimeout(() => $('answer').scrollIntoView({behavior:'smooth', block:'center'}), 250);
 });
 
-$('resetBtn').onclick = () => {
-  if (confirm('Weet je zeker dat je de voortgang op dit apparaat wilt wissen?')) {
-    localStorage.removeItem(STORAGE);
-    location.reload();
+function resetProgress() {
+  const first = confirm(`Let op: hiermee worden al je punten, goede en foute antwoorden, reeks, dagelijkse score en begrippenvoortgang gewist. Je naam en toegang blijven behouden.\n\nWil je echt opnieuw beginnen?`);
+  if (!first) return;
+  const second = prompt('Laatste controle: typ OPNIEUW om je voortgang definitief te wissen.');
+  if (second !== 'OPNIEUW') {
+    alert('De voortgang is niet gewist.');
+    return;
   }
-};
+
+  state.score = 0;
+  state.correct = 0;
+  state.wrong = 0;
+  state.streak = 0;
+  state.mastery = {};
+  state.queue = [];
+  state.asked = 0;
+  state.daily = {};
+  state.lastDate = '';
+  save();
+  current = null;
+  answered = false;
+  lastQuestionIndex = null;
+  updateStats();
+  updateMasteryNow();
+  alert('Je voortgang is gewist. Je kunt opnieuw beginnen!');
+}
+$('resetBtn').onclick = resetProgress;
+$('resetProgressHomeBtn').onclick = resetProgress;
 
 installRankSync();
 updateInstallButton();
@@ -479,4 +530,4 @@ updateStats();
   updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=24').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=25').catch(() => {});

@@ -16,7 +16,7 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV21';
+const STORAGE = 'geschiedenisTrainerV23';
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
@@ -168,9 +168,9 @@ function updateStats() {
   const mastered = Object.values(state.mastery).filter(v => v >= 3).length;
   const total = BANK.length;
   const pct = total ? Math.round(mastered / total * 100) : 0;
-  $('masteryPct').textContent = pct + '%';
-  $('progressText').textContent = `${mastered} van ${total} beheerst`;
-  $('barFill').style.width = pct + '%';
+  if ($('masteryPct')) $('masteryPct').textContent = pct + '%';
+  if ($('progressText')) $('progressText').textContent = `${mastered} van ${total} beheerst`;
+  if ($('barFill')) $('barFill').style.width = pct + '%';
   if ($('progressTextHome')) $('progressTextHome').textContent = `${mastered} van ${total} beheerst`;
   if ($('barFillHome')) $('barFillHome').style.width = pct + '%';
   if ($('progressTextTrainer')) $('progressTextTrainer').textContent = `${mastered} van ${total} beheerst`;

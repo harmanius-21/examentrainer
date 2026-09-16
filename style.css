@@ -104,3 +104,15 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
 .concept-name b{overflow-wrap:anywhere}
 .concept-name span{font-size:.78rem;color:#756d61;margin-top:2px}
 @media(max-width:650px){.concept-list{grid-template-columns:1fr;max-height:500px}}
+
+
+/* V30: klikbare namen en begrippen */
+.concept-item{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease}
+.concept-item:hover,.concept-item:focus{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.10);border-color:var(--gold);outline:none}
+.concept-open{margin-left:auto;font-size:1.5rem;color:#8b7650;font-weight:700}
+.concept-detail-box{max-width:680px;position:relative}
+.concept-detail-box h2{margin:8px 0 18px}
+.concept-detail-status{display:inline-block;margin-top:10px;padding:5px 10px;border-radius:999px;background:#edf7ee;color:#27733b;font-weight:700;font-size:.85rem}
+.concept-detail-short,.concept-detail-long{margin:14px 0;padding:14px 16px;border-radius:9px;background:rgba(255,255,255,.62);line-height:1.55}
+.concept-detail-short p,.concept-detail-long p{margin:7px 0 0}
+.concept-detail-long{background:#fff4cf;border-left:5px solid #c89b3c;color:#4b3b16}

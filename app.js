@@ -16,7 +16,7 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV23'; // behoud bestaande voortgang
+const STORAGE = 'geschiedenisTrainerV23'; // voortgang bewust behouden // behoud bestaande voortgang
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
@@ -253,9 +253,14 @@ function renderConceptOverview() {
     const item = document.createElement('div');
     item.className = 'concept-item' + (mastered ? ' mastered' : '');
     const answers = escapeHtml(q.answers.join(' / '));
+    item.setAttribute('role','button');
+    item.setAttribute('tabindex','0');
+    item.dataset.index = String(i);
+    item.setAttribute('aria-label', `Bekijk uitleg van ${q.answers.join(' / ')}`);
     item.innerHTML = `
       <div class="concept-status">${mastered ? '✓' : '○'}</div>
       <div class="concept-name"><b>${answers}</b><span>${mastered ? 'Beheerst' : `${Math.min(mastery,3)} / 3 goed`}</span></div>
+      <div class="concept-open">›</div>
     `;
     list.appendChild(item);
   });
@@ -266,6 +271,26 @@ function renderConceptOverview() {
   if (pageCount) pageCount.textContent = `${mastered} van ${BANK.length} beheerst`;
   const pageBar = $('conceptPageBar');
   if (pageBar) pageBar.style.width = `${BANK.length ? Math.round(mastered / BANK.length * 100) : 0}%`;
+}
+
+function openConceptDetail(index) {
+  const q = BANK[index];
+  if (!q) return;
+  const mastery = Number(state.mastery[index] || 0);
+  const title = $('conceptDetailTitle');
+  const short = $('conceptDetailShort');
+  const long = $('conceptDetailLong');
+  const status = $('conceptDetailStatus');
+  if (title) title.textContent = q.answers.join(' / ');
+  if (short) short.textContent = q.question || 'Geen korte omschrijving beschikbaar.';
+  if (long) long.textContent = q.explanation || 'Voor dit begrip is nog geen uitgebreide uitleg beschikbaar.';
+  if (status) status.textContent = mastery >= 3 ? '✓ Beheerst' : `${Math.min(mastery,3)} / 3 goed`;
+  $('conceptDetail').classList.remove('hidden');
+}
+
+function closeConceptDetail() {
+  const modal = $('conceptDetail');
+  if (modal) modal.classList.add('hidden');
 }
 
 function nextQuestion() {
@@ -478,6 +503,20 @@ $('conceptOverviewBtn').onclick = () => {
   $('conceptScreen').classList.remove('hidden');
   renderConceptOverview();
 };
+$('conceptList').addEventListener('click', e => {
+  const item = e.target.closest('.concept-item');
+  if (item && item.dataset.index !== undefined) openConceptDetail(Number(item.dataset.index));
+});
+$('conceptList').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    const item = e.target.closest('.concept-item');
+    if (item && item.dataset.index !== undefined) { e.preventDefault(); openConceptDetail(Number(item.dataset.index)); }
+  }
+});
+$('closeConceptDetail').onclick = closeConceptDetail;
+$('closeConceptDetailBtn').onclick = closeConceptDetail;
+$('conceptDetail').addEventListener('click', e => { if (e.target === $('conceptDetail')) closeConceptDetail(); });
+
 $('backFromConceptsBtn').onclick = () => {
   $('conceptScreen').classList.add('hidden');
   $('homeScreen').classList.remove('hidden');

@@ -16,7 +16,7 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV20';
+const STORAGE = 'geschiedenisTrainerV21';
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
@@ -150,6 +150,7 @@ function updateRank() {
   if ($('trainerRankScore')) $('trainerRankScore').textContent = `${state.score} punten`;
   if ($('trainerRankBar')) $('trainerRankBar').style.width = progress + '%';
   if ($('trainerNextRankText')) $('trainerNextRankText').textContent = nextText;
+  if ($('trainerRankProgressText')) $('trainerRankProgressText').textContent = next ? `${Math.max(0, state.score - rank.min)} / ${next.min - rank.min} punten` : 'Hoogste rang bereikt';
 }
 
 function updateMasteryNow() {
@@ -435,4 +436,4 @@ updateStats();
   updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=19').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=21').catch(() => {});

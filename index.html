@@ -130,11 +130,6 @@
         <div id="feedback" class="feedback" aria-live="polite"></div><button id="nextBtn" class="primary hidden">Volgende vraag →</button>
       </section>
 
-      <section class="progress-card card">
-        <div class="section-title"><h3>Mijn voortgang</h3><span id="progressTextTrainer">0 van 87 beheerst</span></div>
-        <div class="bar"><div id="barFillTrainer"></div></div>
-      </section>
-
       <section class="rank-card card trainer-rank-card">
         <div class="rank-main">
           <div id="trainerRankIcon" class="rank-emblem">🏛️</div>
@@ -146,6 +141,12 @@
         </div>
         <div class="rank-next-label" id="trainerNextRankText">Nog 100 punten tot 🏛️ Schoof</div>
         <div class="rank-progress"><div id="trainerRankBar"></div></div>
+        <div class="rank-next-label" id="trainerRankProgressText">0 / 100 punten</div>
+      </section>
+
+      <section class="progress-card card">
+        <div class="section-title"><h3>Mijn voortgang</h3><span id="progressTextTrainer">0 van 87 beheerst</span></div>
+        <div class="bar"><div id="barFillTrainer"></div></div>
       </section>
     </section>
   </section>
@@ -154,7 +155,7 @@
       <div class="rank-up-burst">🎉</div>
       <div class="eyebrow">NIEUWE RANG!</div>
       <div id="rankUpIcon" class="rank-emblem">🏆</div>
-      <h2 id="rankUpTitle">Historische Meester</h2>
+      <h2 id="rankUpTitle">Nieuwe rang</h2>
       <p>Gefeliciteerd! Je hebt een nieuwe rang bereikt.</p>
       <button id="closeRankUp" class="primary">Doorgaan →</button>
     </div>

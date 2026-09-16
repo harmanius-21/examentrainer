@@ -77,4 +77,4 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
 .explanation { margin-top:12px; padding:14px 16px; background:#fff4cf; border-left:5px solid #c89b3c; border-radius:8px; color:#4b3b16; line-height:1.55; }
 .feedback.info { border-left-color:#c89b3c; }
 
-.trainer-rank-card{margin-top:14px;margin-bottom:24px}.trainer-rank-card .rank-main{margin-bottom:10px}.trainer-rank-card strong{font:700 22px Cinzel,serif}.rank-next-label{font-size:13px;color:#6d6558;margin-top:8px}
+.trainer-rank-card{display:block!important;margin-top:14px;margin-bottom:24px}.trainer-rank-card .rank-main{display:flex;align-items:center;margin-bottom:10px}.trainer-rank-card strong{font:700 22px Cinzel,serif}.rank-next-label{font-size:13px;color:#6d6558;margin-top:8px}.trainer-rank-card .rank-progress{display:block!important}.trainer-rank-card .rank-progress>div{height:100%;display:block;transition:width .35s ease}

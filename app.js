@@ -1,17 +1,36 @@
+
+function showExtraExplanation() {
+  if (!current) return;
+  const text = current.explanation || 'Voor deze vraag is nog geen uitgebreide uitleg beschikbaar.';
+  const fb = $('feedback');
+  if (!fb) return;
+  fb.className = 'feedback info';
+  fb.innerHTML = `<div class="feedback-title">💡 Extra uitleg</div><div class="explanation"><b>Uitleg:</b><br>${escapeHtml(text)}</div>`;
+}
+document.addEventListener('click', (e) => {
+  const t=e.target;
+  if (t && t.id==='checkBtn' && t.textContent.trim()==='Extra uitleg') {
+    e.preventDefault();
+    showExtraExplanation();
+  }
+});
+
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV15';
+const STORAGE = 'geschiedenisTrainerV16';
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
-  { min: 0,    icon: '🕯️', title: 'Historische Rekruut' },
-  { min: 100,  icon: '📜', title: 'Tijdreiziger' },
-  { min: 250,  icon: '🏛️', title: 'Geschiedenisleerling' },
-  { min: 500,  icon: '🗺️', title: 'Historisch Ontdekker' },
-  { min: 750,  icon: '🎓', title: 'Examenkenner' },
-  { min: 1000, icon: '🏆', title: 'Historische Meester' },
-  { min: 1500, icon: '👑', title: 'Meester van het Verleden' },
-  { min: 2500, icon: '⚜️', title: 'Grootmeester Geschiedenis' },
-  { min: 5000, icon: '👑', title: 'Legende van de Geschiedenis' }
+  { min: 0, name: "Willem III" },
+  { min: 100, name: "Schoof" },
+  { min: 250, name: "Balkenende" },
+  { min: 500, name: "Juliana" },
+  { min: 750, name: "Willem II" },
+  { min: 1000, name: "Colijn" },
+  { min: 1500, name: "Balkenende" },
+  { min: 2500, name: "Beatrix" },
+  { min: 5000, name: "Rutte" },
+  { min: 7500, name: "Drees" },
+  { min: 10000, name: "Wilhelmina" }
 ];
 
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {

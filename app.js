@@ -16,7 +16,7 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV17';
+const STORAGE = 'geschiedenisTrainerV18';
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
@@ -264,7 +264,9 @@ function check() {
 
   const newRank = getRank(state.score);
   $('answer').disabled = true;
-  $('checkBtn').disabled = true;
+  // After a correct answer the button becomes the optional "Extra uitleg" button.
+  // After a wrong answer the explanation is already shown and the button is disabled.
+  $('checkBtn').disabled = !ok;
   $('nextBtn').classList.remove('hidden');
   updateStats();
   updateMasteryNow();
@@ -421,4 +423,4 @@ updateStats();
   updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=15').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=18').catch(() => {});

@@ -550,49 +550,61 @@ function isInstalled() {
     document.referrer.startsWith('android-app://');
 }
 
-function updateInstallButton() {
-  const btn = $('installBtn');
-  if (!btn) return;
-  // Always show on the welcome screen unless the app is already installed.
-  if (isInstalled()) {
-    btn.classList.add('hidden');
+function setInstallVisibility() {
+  const installed = isInstalled();
+  const gateBtn = $('installBtn');
+  const homeCard = $('installHomeCard');
+  const homeBtn = $('installHomeBtn');
+  if (gateBtn) gateBtn.classList.toggle('hidden', installed);
+  if (homeCard) homeCard.classList.toggle('hidden', installed);
+  if (homeBtn) homeBtn.classList.toggle('hidden', installed);
+}
+
+function showInstallFallback(targetHelp) {
+  const help = targetHelp || $('installHelp');
+  if (!help) return;
+  help.classList.remove('hidden');
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) {
+    help.innerHTML = '<b>iPhone/iPad:</b> tik op <b>Deel</b> en kies <b>Zet op beginscherm</b>.';
+  } else if (/android/.test(ua)) {
+    help.innerHTML = '<b>Android:</b> tik rechtsboven op <b>⋮</b> en kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.';
+  } else {
+    help.innerHTML = '<b>Computer:</b> zoek het installatie-icoon in de adresbalk. <br><b>Chrome/Edge:</b> open het menu en kies <b>App installeren</b> of <b>Installeren</b>.';
+  }
+}
+
+async function installApp(helpElement) {
+  if (deferredInstallPrompt) {
+    try {
+      deferredInstallPrompt.prompt();
+      const result = await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      if (result && result.outcome === 'accepted') setInstallVisibility();
+      else if (result && result.outcome !== 'accepted') showInstallFallback(helpElement);
+    } catch (_) {
+      showInstallFallback(helpElement);
+    }
     return;
   }
-  btn.classList.remove('hidden');
+  showInstallFallback(helpElement);
 }
 
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredInstallPrompt = e;
-  updateInstallButton();
+  setInstallVisibility();
 });
 
-$('installBtn').onclick = async () => {
-  const help = $('installInstructions');
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    const result = await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    if (result.outcome === 'accepted') {
-      $('installBtn').classList.add('hidden');
-      if (help) help.classList.add('hidden');
-    }
-    return;
-  }
+const gateInstallBtn = $('installBtn');
+if (gateInstallBtn) gateInstallBtn.onclick = () => installApp($('installHelp'));
+const homeInstallBtn = $('installHomeBtn');
+if (homeInstallBtn) homeInstallBtn.onclick = () => installApp($('installHomeHelp'));
 
-  // Fallback: give platform-specific instructions.
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if (help) {
-    help.classList.remove('hidden');
-    if (ios) {
-      help.innerHTML = '<b>iPhone/iPad:</b> tik op <b>Deel</b> en kies <b>Zet op beginscherm</b>.';
-    } else {
-      help.innerHTML = '<b>Android:</b> tik rechtsboven op <b>⋮</b> en kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.';
-    }
-  }
-};
-
-window.addEventListener('appinstalled', () => $('installBtn').classList.add('hidden'));
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  setInstallVisibility();
+});
 
 $('answer').addEventListener('focus', () => {
   setTimeout(() => $('answer').scrollIntoView({behavior:'smooth', block:'center'}), 250);
@@ -635,4 +647,4 @@ updateStats();
   updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=28').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=34').catch(() => {});

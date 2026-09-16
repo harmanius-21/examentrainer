@@ -521,8 +521,8 @@ function resetProgress() {
   updateMasteryNow();
   alert('Je voortgang is gewist. Je kunt opnieuw beginnen!');
 }
-$('resetBtn').onclick = resetProgress;
-$('resetProgressHomeBtn').onclick = resetProgress;
+const resetTeacherBtn = $('resetBtn'); if (resetTeacherBtn) resetTeacherBtn.onclick = resetProgress;
+const resetHomeBtn = $('resetProgressHomeBtn'); if (resetHomeBtn) resetHomeBtn.onclick = resetProgress;
 
 installRankSync();
 updateInstallButton();

@@ -1,4 +1,4 @@
-const CACHE='geschiedenis-v25';
+const CACHE='geschiedenis-v26';
 const FILES=['./','./index.html','./style.css','./config.js?v=25','./questions.js?v=25','./app.js?v=25','./manifest.json','./logo.svg'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

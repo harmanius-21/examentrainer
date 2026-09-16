@@ -84,3 +84,10 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
 #trainerRankBar{background:var(--gold);height:100%;width:0;border-radius:99px;display:block;transition:width .35s ease}
 
 .reset-progress-card{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 28px;margin:15px 0}.reset-progress-card h3{font:700 20px Cinzel,serif;margin:4px 0}.reset-progress-card p{margin:5px 0 0;color:#6d6558}.danger{border:1px solid #9b2637;background:#fff5f5;color:#9b2637;border-radius:9px;padding:12px 16px;font-weight:700;cursor:pointer}.danger:hover{background:#fbe4e7}@media(max-width:700px){.reset-progress-card{flex-direction:column;align-items:stretch}.reset-progress-card button{width:100%}}
+
+/* V26: rang en reset altijd duidelijk zichtbaar */
+.home-rank .rank-emblem::before{content:'👑';}
+.reset-visible{display:inline-flex!important;align-items:center;justify-content:center;visibility:visible!important;opacity:1!important;}
+.home-rank .rank-emblem{font-size:2.8rem!important;}
+.rank-progress{display:block!important;min-height:10px!important;}
+.rank-progress>div{display:block!important;height:100%!important;background:var(--gold)!important;min-width:0;}

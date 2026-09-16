@@ -16,7 +16,7 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV19';
+const STORAGE = 'geschiedenisTrainerV20';
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
@@ -126,18 +126,30 @@ function recordQuestionToday() {
 function updateRank() {
   const rank = getRank(state.score);
   const next = getNextRank(state.score);
-  $('rankIcon').textContent = rank.icon;
-  $('rankTitle').textContent = rank.title;
-  $('rankScore').textContent = `${state.score} punten`;
+  const homeIcon = $('rankIcon');
+  const homeTitle = $('rankTitle');
+  const homeScore = $('rankScore');
+  if (homeIcon) homeIcon.textContent = rank.icon;
+  if (homeTitle) homeTitle.textContent = rank.title;
+  if (homeScore) homeScore.textContent = `${state.score} punten`;
+
+  let progress = 100;
+  let nextText = 'Je hebt de hoogste rang bereikt!';
   if (next) {
     const range = next.min - rank.min;
-    const progress = Math.max(0, Math.min(100, Math.round((state.score - rank.min) / range * 100)));
-    $('rankBar').style.width = progress + '%';
-    $('nextRankText').textContent = `Nog ${next.min - state.score} punten tot ${next.icon} ${next.title}`;
-  } else {
-    $('rankBar').style.width = '100%';
-    $('nextRankText').textContent = 'Je hebt de hoogste rang bereikt!';
+    progress = Math.max(0, Math.min(100, Math.round((state.score - rank.min) / range * 100)));
+    nextText = `Nog ${next.min - state.score} punten tot ${next.icon} ${next.title}`;
   }
+
+  if ($('rankBar')) $('rankBar').style.width = progress + '%';
+  if ($('nextRankText')) $('nextRankText').textContent = nextText;
+
+  // Ook onderaan de oefenpagina altijd de huidige rang + voortgang tonen.
+  if ($('trainerRankIcon')) $('trainerRankIcon').textContent = rank.icon;
+  if ($('trainerRankTitle')) $('trainerRankTitle').textContent = rank.title;
+  if ($('trainerRankScore')) $('trainerRankScore').textContent = `${state.score} punten`;
+  if ($('trainerRankBar')) $('trainerRankBar').style.width = progress + '%';
+  if ($('trainerNextRankText')) $('trainerNextRankText').textContent = nextText;
 }
 
 function updateMasteryNow() {

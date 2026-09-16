@@ -1,5 +1,6 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV14';
+const STORAGE = 'geschiedenisTrainerV15';
+const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
   { min: 0,    icon: '🕯️', title: 'Historische Rekruut' },
@@ -25,12 +26,6 @@ let lastQuestionIndex = null;
 const norm = s => String(s ?? '').toLowerCase().trim().replace(/\s+/g, ' ');
 
 
-function ensureQuestionsLoaded() {
-  if (Array.isArray(window.QUESTIONS) && window.QUESTIONS.length) {
-    questions = window.QUESTIONS;
-  }
-  return Array.isArray(questions) && questions.length > 0;
-}
 
 function answerNorm(s) {
   return norm(s)
@@ -404,4 +399,4 @@ updateStats();
   updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=13').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=15').catch(() => {});

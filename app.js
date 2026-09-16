@@ -182,7 +182,9 @@ function updateMasteryNow() {
   const total = BANK.length;
   const el = $('masteredCount');
   if (el) el.textContent = `${mastered}/${total}`;
+  renderConceptOverview();
 }
+
 
 function updateStats() {
   const setText = (id, value) => {
@@ -225,9 +227,12 @@ function installRankSync() {
 }
 
 function buildQueue() {
+  // Begrippen die 3x goed zijn beantwoord zijn beheerst en verdwijnen
+  // definitief uit de oefenreeks totdat de leerling de voortgang wist.
   const weighted = [];
   BANK.forEach((q, i) => {
-    const mastery = state.mastery[i] || 0;
+    const mastery = Number(state.mastery[i] || 0);
+    if (mastery >= 3) return;
     const weight = Math.max(1, 4 - mastery);
     for (let n = 0; n < weight; n++) weighted.push(i);
   });
@@ -238,12 +243,53 @@ function buildQueue() {
   state.queue = weighted.slice(0, Math.min(weighted.length, 40));
 }
 
+function renderConceptOverview() {
+  const list = $('conceptList');
+  if (!list) return;
+  list.innerHTML = '';
+  BANK.forEach((q, i) => {
+    const mastery = Number(state.mastery[i] || 0);
+    const mastered = mastery >= 3;
+    const item = document.createElement('div');
+    item.className = 'concept-item' + (mastered ? ' mastered' : '');
+    const answers = escapeHtml(q.answers.join(' / '));
+    item.innerHTML = `
+      <div class="concept-status">${mastered ? '✓' : '○'}</div>
+      <div class="concept-name"><b>${answers}</b><span>${mastered ? 'Beheerst' : `${Math.min(mastery,3)} / 3 goed`}</span></div>
+    `;
+    list.appendChild(item);
+  });
+  const mastered = BANK.filter((_, i) => Number(state.mastery[i] || 0) >= 3).length;
+  const title = $('conceptOverviewCount');
+  if (title) title.textContent = `${mastered} van ${BANK.length} beheerst`;
+  const pageCount = $('conceptPageCount');
+  if (pageCount) pageCount.textContent = `${mastered} van ${BANK.length} beheerst`;
+  const pageBar = $('conceptPageBar');
+  if (pageBar) pageBar.style.width = `${BANK.length ? Math.round(mastered / BANK.length * 100) : 0}%`;
+}
+
 function nextQuestion() {
   if (!BANK.length) {
     $('question').textContent = 'Er zijn geen vragen geladen.';
     return;
   }
   if (!state.queue.length) buildQueue();
+  // Verwijder ook oude wachtrij-items die inmiddels beheerst zijn.
+  state.queue = state.queue.filter(i => Number(state.mastery[i] || 0) < 3);
+  if (!state.queue.length) {
+    current = null;
+    answered = false;
+    $('questionNo').textContent = 'Klaar!';
+    $('question').textContent = '🎉 Je hebt alle namen en begrippen beheerst!';
+    $('feedback').className = 'feedback good';
+    $('feedback').textContent = 'Je kunt opnieuw beginnen via het overzicht als je alles nog eens wilt oefenen.';
+    $('answer').disabled = true;
+    $('checkBtn').classList.add('hidden');
+    $('skipBtn').classList.add('hidden');
+    $('nextBtn').classList.add('hidden');
+  $('skipBtn').classList.remove('hidden');
+    return;
+  }
 
   // Voorkom dat dezelfde vraag direct opnieuw verschijnt.
   if (lastQuestionIndex !== null && state.queue.length > 1 && state.queue[0] === lastQuestionIndex) {
@@ -300,6 +346,9 @@ function check() {
     state.score += 10;
     state.streak++;
     state.mastery[current.idx] = (state.mastery[current.idx] || 0) + 1;
+    if (state.mastery[current.idx] >= 3) {
+      state.queue = state.queue.filter(i => i !== current.idx);
+    }
     $('feedback').className = 'feedback good';
     $('feedback').textContent = '✓ Goed! +10 punten';
     $('checkBtn').textContent = 'Extra uitleg';
@@ -404,6 +453,7 @@ function showApp() {
   $('gate').classList.add('hidden');
   $('app').classList.remove('hidden');
   $('homeScreen').classList.remove('hidden');
+  $('conceptScreen').classList.add('hidden');
   $('trainerScreen').classList.add('hidden');
   updateStats();
   updateMasteryNow();
@@ -418,11 +468,25 @@ $('checkBtn').onclick = check;
 $('nextBtn').onclick = nextQuestion;
 $('startTrainingBtn').onclick = () => {
   $('homeScreen').classList.add('hidden');
+  $('conceptScreen').classList.add('hidden');
   $('trainerScreen').classList.remove('hidden');
   nextQuestion();
 };
+$('conceptOverviewBtn').onclick = () => {
+  $('homeScreen').classList.add('hidden');
+  $('trainerScreen').classList.add('hidden');
+  $('conceptScreen').classList.remove('hidden');
+  renderConceptOverview();
+};
+$('backFromConceptsBtn').onclick = () => {
+  $('conceptScreen').classList.add('hidden');
+  $('homeScreen').classList.remove('hidden');
+  updateStats();
+  updateMasteryNow();
+};
 $('backHomeBtn').onclick = () => {
   $('trainerScreen').classList.add('hidden');
+  $('conceptScreen').classList.add('hidden');
   $('homeScreen').classList.remove('hidden');
   updateStats();
   updateMasteryNow();
@@ -530,4 +594,4 @@ updateStats();
   updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=25').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=28').catch(() => {});

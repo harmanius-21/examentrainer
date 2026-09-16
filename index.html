@@ -107,6 +107,15 @@
         <div class="mastery-note">Een begrip telt als beheerst wanneer je het meerdere keren goed beantwoordt.</div>
       </section>
 
+      <section class="home-actions card concept-link-card">
+        <div>
+          <div class="eyebrow">OVERZICHT</div>
+          <h3>📖 Namen &amp; begrippen</h3>
+          <p>Bekijk welke namen en begrippen je al beheerst en hoe ver je bent.</p>
+        </div>
+        <button id="conceptOverviewBtn" class="primary big-button">📖 Namen &amp; begrippen</button>
+      </section>
+
       <section class="reset-progress-card card">
         <div>
           <div class="eyebrow">OPNIEUW BEGINNEN</div>
@@ -114,6 +123,24 @@
           <p>Wil je helemaal opnieuw beginnen? Je naam en toegang blijven behouden.</p>
         </div>
         <button id="resetProgressHomeBtn" class="danger reset-visible">↺ Voortgang wissen</button>
+      </section>
+    </section>
+
+    <section id="conceptScreen" class="hidden">
+      <div class="trainer-top card">
+        <button id="backFromConceptsBtn" class="ghost">← Overzicht</button>
+        <span>📖 Namen &amp; begrippen</span>
+      </div>
+
+      <section class="progress-card card">
+        <div class="section-title"><h3>Mijn beheersing</h3><span id="conceptPageCount">0 van 87 beheerst</span></div>
+        <div class="bar"><div id="conceptPageBar"></div></div>
+        <div class="mastery-note">Een begrip is beheerst na 3 goede antwoorden. Beheerste begrippen komen niet meer terug tijdens het oefenen.</div>
+      </section>
+
+      <section class="concept-overview card">
+        <div class="section-title"><h3>📖 Alle namen &amp; begrippen</h3><span id="conceptOverviewCount">0 van 87 beheerst</span></div>
+        <div id="conceptList" class="concept-list"></div>
       </section>
     </section>
 
@@ -182,8 +209,8 @@
   </section>
 </main>
 <footer>© 2026 Harm de Jong • Examentrainer Geschiedenis • VMBO</footer>
-<script src="config.js?v=27"></script>
-<script src="questions.js?v=27"></script>
-<script src="app.js?v=27"></script>
+<script src="config.js?v=29"></script>
+<script src="questions.js?v=29"></script>
+<script src="app.js?v=29"></script>
 </body>
 </html>

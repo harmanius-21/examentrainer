@@ -16,7 +16,7 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV23';
+const STORAGE = 'geschiedenisTrainerV23'; // behouden zodat bestaande voortgang meegaat naar V24
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
@@ -124,33 +124,57 @@ function recordQuestionToday() {
 }
 
 function updateRank() {
-  const rank = getRank(state.score);
-  const next = getNextRank(state.score);
-  const homeIcon = $('rankIcon');
-  const homeTitle = $('rankTitle');
-  const homeScore = $('rankScore');
-  if (homeIcon) homeIcon.textContent = rank.icon;
-  if (homeTitle) homeTitle.textContent = rank.title;
-  if (homeScore) homeScore.textContent = `${state.score} punten`;
+  // Eén centrale rangweergave: alle rangvelden worden altijd uit state.score berekend.
+  const score = Math.max(0, Number(state.score) || 0);
+  const rank = getRank(score);
+  const next = getNextRank(score);
 
   let progress = 100;
   let nextText = 'Je hebt de hoogste rang bereikt!';
+  let progressText = 'Hoogste rang bereikt';
   if (next) {
-    const range = next.min - rank.min;
-    progress = Math.max(0, Math.min(100, Math.round((state.score - rank.min) / range * 100)));
-    nextText = `Nog ${next.min - state.score} punten tot ${next.icon} ${next.title}`;
+    const range = Math.max(1, next.min - rank.min);
+    progress = Math.max(0, Math.min(100, ((score - rank.min) / range) * 100));
+    nextText = `Nog ${next.min - score} punten tot ${next.icon} ${next.title}`;
+    progressText = `${score - rank.min} / ${range} punten`;
   }
 
-  if ($('rankBar')) $('rankBar').style.width = progress + '%';
-  if ($('nextRankText')) $('nextRankText').textContent = nextText;
+  // Afronden alleen voor de tekst; de CSS-balk krijgt de exacte waarde.
+  const pct = Math.round(progress);
 
-  // Ook onderaan de oefenpagina altijd de huidige rang + voortgang tonen.
-  if ($('trainerRankIcon')) $('trainerRankIcon').textContent = rank.icon;
-  if ($('trainerRankTitle')) $('trainerRankTitle').textContent = rank.title;
-  if ($('trainerRankScore')) $('trainerRankScore').textContent = `${state.score} punten`;
-  if ($('trainerRankBar')) $('trainerRankBar').style.width = progress + '%';
-  if ($('trainerNextRankText')) $('trainerNextRankText').textContent = nextText;
-  if ($('trainerRankProgressText')) $('trainerRankProgressText').textContent = next ? `${Math.max(0, state.score - rank.min)} / ${next.min - rank.min} punten` : 'Hoogste rang bereikt';
+  const setText = (id, value) => {
+    const el = $(id);
+    if (el) el.textContent = value;
+  };
+  const setWidth = (id, value) => {
+    const el = $(id);
+    if (el) {
+      el.style.width = `${value}%`;
+      el.setAttribute('aria-valuenow', String(value));
+    }
+  };
+
+  // Dashboard
+  setText('rankIcon', rank.icon);
+  setText('rankTitle', rank.title);
+  setText('rankScore', `${score} punten`);
+  setText('nextRankText', nextText);
+  setWidth('rankBar', pct);
+
+  // Oefenscherm
+  setText('trainerRankIcon', rank.icon);
+  setText('trainerRankTitle', rank.title);
+  setText('trainerRankScore', `${score} punten`);
+  setText('trainerNextRankText', nextText);
+  setText('trainerRankProgressText', progressText);
+  setWidth('trainerRankBar', pct);
+
+  // Extra directe koppeling: als de rangkaart bestaat, schrijf de score ook als data-attribuut.
+  const card = document.querySelector('.trainer-rank-card');
+  if (card) {
+    card.dataset.score = String(score);
+    card.dataset.rank = rank.title;
+  }
 }
 
 function updateMasteryNow() {
@@ -161,25 +185,43 @@ function updateMasteryNow() {
 }
 
 function updateStats() {
-  $('score').textContent = state.score;
-  $('correct').textContent = state.correct;
-  $('wrong').textContent = state.wrong;
-  $('streak').textContent = state.streak;
-  const mastered = Object.values(state.mastery).filter(v => v >= 3).length;
+  const setText = (id, value) => {
+    const el = $(id);
+    if (el) el.textContent = value;
+  };
+  setText('score', state.score);
+  setText('correct', state.correct);
+  setText('wrong', state.wrong);
+  setText('streak', state.streak);
+
+  const mastered = Object.values(state.mastery || {}).filter(v => Number(v) >= 3).length;
   const total = BANK.length;
   const pct = total ? Math.round(mastered / total * 100) : 0;
-  if ($('masteryPct')) $('masteryPct').textContent = pct + '%';
-  if ($('progressText')) $('progressText').textContent = `${mastered} van ${total} beheerst`;
+  setText('masteryPct', pct + '%');
+  setText('progressText', `${mastered} van ${total} beheerst`);
   if ($('barFill')) $('barFill').style.width = pct + '%';
-  if ($('progressTextHome')) $('progressTextHome').textContent = `${mastered} van ${total} beheerst`;
+  setText('progressTextHome', `${mastered} van ${total} beheerst`);
   if ($('barFillHome')) $('barFillHome').style.width = pct + '%';
-  if ($('progressTextTrainer')) $('progressTextTrainer').textContent = `${mastered} van ${total} beheerst`;
+  setText('progressTextTrainer', `${mastered} van ${total} beheerst`);
   if ($('barFillTrainer')) $('barFillTrainer').style.width = pct + '%';
-  if ($('masteryPctHome')) $('masteryPctHome').textContent = pct + '%';
-  if ($('wrongHome')) $('wrongHome').textContent = state.wrong;
-  if ($('streakHome')) $('streakHome').textContent = state.streak;
+  setText('masteryPctHome', pct + '%');
+  setText('wrongHome', state.wrong);
+  setText('streakHome', state.streak);
   updateDaily();
+
+  // BELANGRIJK: rang altijd als laatste opnieuw tekenen vanuit dezelfde actuele score.
   updateRank();
+}
+
+
+// Houd de rangkaart ook synchroon als de score door een andere functie wordt aangepast.
+// Dit is een extra veiligheidsnet tegen oude/cached codepaden.
+function installRankSync() {
+  const scoreEl = $('score');
+  if (!scoreEl || scoreEl.__rankSyncInstalled) return;
+  scoreEl.__rankSyncInstalled = true;
+  const observer = new MutationObserver(() => updateRank());
+  observer.observe(scoreEl, { childList: true, characterData: true, subtree: true });
 }
 
 function buildQueue() {
@@ -431,9 +473,10 @@ $('resetBtn').onclick = () => {
   }
 };
 
+installRankSync();
 updateInstallButton();
 updateStats();
   updateMasteryNow();
 updateDaily();
 if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=21').catch(() => {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=24').catch(() => {});

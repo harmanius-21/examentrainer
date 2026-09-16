@@ -629,6 +629,8 @@ const resetHomeBtn = $('resetProgressHomeBtn'); if (resetHomeBtn) resetHomeBtn.o
 
 installRankSync();
 updateInstallButton();
+window.addEventListener('pageshow', updateInstallButton);
+window.addEventListener('visibilitychange', () => { if (!document.hidden) updateInstallButton(); });
 updateStats();
   updateMasteryNow();
 updateDaily();

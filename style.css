@@ -117,7 +117,7 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
 .concept-detail-short p,.concept-detail-long p{margin:7px 0 0}
 .concept-detail-long{background:#fff4cf;border-left:5px solid #c89b3c;color:#4b3b16}
 
-/* V32: uitlegvenster volledig scrollbaar op mobiele schermen */
+/* V33: mobiel detailvenster echt verticaal scrollbaar */
 .modal{overflow-y:auto;overflow-x:hidden;align-items:start;place-items:center;}
 .modal-box{width:min(680px,100%);max-height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
 .concept-detail-box{width:min(680px,100%);max-height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden;}
@@ -126,4 +126,15 @@ main{max-width:1050px;margin:32px auto;padding:0 18px}.card{background:linear-gr
   .modal{padding:12px;}
   .modal-box{max-height:calc(100dvh - 24px);padding:22px 18px;}
   .concept-detail-box{max-height:calc(100dvh - 24px);}
+}
+
+/* V33 mobile scrolling fix */
+html,body{max-width:100%;overflow-x:hidden;}
+.modal{height:100dvh;overflow-y:auto;overflow-x:hidden;display:flex;align-items:flex-start;justify-content:center;touch-action:pan-y;-webkit-overflow-scrolling:touch;}
+.concept-detail-box{flex:0 0 auto;margin:12px 0 24px;width:min(680px,100%);max-height:none;overflow:visible;touch-action:auto;}
+@media(max-width:650px){
+  .modal{padding:12px 10px;display:block;}
+  .concept-detail-box{width:100%;margin:0 0 30px;max-height:none;overflow:visible;}
+  .concept-detail-box .close{position:sticky;float:right;top:0;z-index:2;}
+  .concept-detail-short,.concept-detail-long{width:100%;min-width:0;overflow-wrap:anywhere;word-break:break-word;}
 }

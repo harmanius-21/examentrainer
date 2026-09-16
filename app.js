@@ -16,21 +16,21 @@ document.addEventListener('click', (e) => {
 });
 
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV16';
+const STORAGE = 'geschiedenisTrainerV17';
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
-  { min: 0, name: "Willem III" },
-  { min: 100, name: "Schoof" },
-  { min: 250, name: "Balkenende" },
-  { min: 500, name: "Juliana" },
-  { min: 750, name: "Willem II" },
-  { min: 1000, name: "Colijn" },
-  { min: 1500, name: "Balkenende" },
-  { min: 2500, name: "Beatrix" },
-  { min: 5000, name: "Rutte" },
-  { min: 7500, name: "Drees" },
-  { min: 10000, name: "Wilhelmina" }
+  { min: 0, name: "Willem III", title: "Willem III", icon: "🏛️" },
+  { min: 100, name: "Schoof", title: "Schoof", icon: "🏛️" },
+  { min: 250, name: "Balkenende", title: "Balkenende", icon: "🏛️" },
+  { min: 500, name: "Juliana", title: "Juliana", icon: "🏛️" },
+  { min: 750, name: "Willem II", title: "Willem II", icon: "🏛️" },
+  { min: 1000, name: "Colijn", title: "Colijn", icon: "🏛️" },
+  { min: 1500, name: "Balkenende", title: "Balkenende", icon: "🏛️" },
+  { min: 2500, name: "Beatrix", title: "Beatrix", icon: "🏛️" },
+  { min: 5000, name: "Rutte", title: "Rutte", icon: "🏛️" },
+  { min: 7500, name: "Drees", title: "Drees", icon: "🏛️" },
+  { min: 10000, name: "Wilhelmina", title: "Wilhelmina", icon: "🏛️" }
 ];
 
 let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
@@ -142,7 +142,7 @@ function updateRank() {
 
 function updateMasteryNow() {
   const mastered = Object.values(state.mastery || {}).filter(v => Number(v) >= 3).length;
-  const total = Array.isArray(questions) ? questions.length : 0;
+  const total = BANK.length;
   const el = $('masteredCount');
   if (el) el.textContent = `${mastered}/${total}`;
 }
@@ -210,6 +210,7 @@ function nextQuestion() {
   $('answer').value = '';
   $('answer').disabled = false;
   $('checkBtn').disabled = false;
+  $('checkBtn').textContent = 'Controleer';
   $('checkBtn').classList.remove('hidden');
   $('nextBtn').classList.add('hidden');
   $('feedback').className = 'feedback';
@@ -246,6 +247,8 @@ function check() {
     state.mastery[current.idx] = (state.mastery[current.idx] || 0) + 1;
     $('feedback').className = 'feedback good';
     $('feedback').textContent = '✓ Goed! +10 punten';
+    $('checkBtn').textContent = 'Extra uitleg';
+    $('checkBtn').disabled = false;
   } else {
     state.wrong++;
     state.score = Math.max(0, state.score - 2);

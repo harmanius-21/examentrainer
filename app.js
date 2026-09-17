@@ -7,16 +7,8 @@ function showExtraExplanation() {
   fb.className = 'feedback info';
   fb.innerHTML = `<div class="feedback-title">💡 Extra uitleg</div><div class="explanation"><b>Uitleg:</b><br>${escapeHtml(text)}</div>`;
 }
-document.addEventListener('click', (e) => {
-  const t=e.target;
-  if (t && t.id==='checkBtn' && t.textContent.trim()==='Extra uitleg') {
-    e.preventDefault();
-    showExtraExplanation();
-  }
-});
-
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV23'; // voortgang bewust behouden // behoud bestaande voortgang
+const STORAGE = 'geschiedenisTrainerV34'; // voortgang bewust behouden // behoud bestaande voortgang
 const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
 
 const RANKS = [
@@ -489,7 +481,13 @@ $('studentName').onkeydown = e => { if (e.key === 'Enter') $('accessCode').focus
 $('studentName').value = state.studentName || '';
 updateStudentName();
 $('accessCode').onkeydown = e => { if (e.key === 'Enter') unlock(); };
-$('checkBtn').onclick = check;
+$('checkBtn').onclick = () => {
+  if (answered) {
+    showExtraExplanation();
+  } else {
+    check();
+  }
+};
 $('nextBtn').onclick = nextQuestion;
 $('startTrainingBtn').onclick = () => {
   $('homeScreen').classList.add('hidden');

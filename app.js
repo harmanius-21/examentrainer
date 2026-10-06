@@ -1,648 +1,72 @@
-
-function showExtraExplanation() {
-  if (!current) return;
-  const text = current.explanation || 'Voor deze vraag is nog geen uitgebreide uitleg beschikbaar.';
-  const fb = $('feedback');
-  if (!fb) return;
-  fb.className = 'feedback info';
-  fb.innerHTML = `<div class="feedback-title">💡 Extra uitleg</div><div class="explanation"><b>Uitleg:</b><br>${escapeHtml(text)}</div>`;
-}
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV34'; // voortgang bewust behouden // behoud bestaande voortgang
-const BANK = Array.isArray(QUESTIONS) ? QUESTIONS : [];
-
-const RANKS = [
-  { min: 0, name: "Willem III", title: "Willem III", icon: "👑" },
-  { min: 100, name: "Schoof", title: "Schoof", icon: "👑" },
-  { min: 250, name: "Balkenende", title: "Balkenende", icon: "👑" },
-  { min: 500, name: "Juliana", title: "Juliana", icon: "👑" },
-  { min: 750, name: "Willem II", title: "Willem II", icon: "👑" },
-  { min: 1000, name: "Colijn", title: "Colijn", icon: "👑" },
-  { min: 1500, name: "Balkenende", title: "Balkenende", icon: "👑" },
-  { min: 2500, name: "Beatrix", title: "Beatrix", icon: "👑" },
-  { min: 5000, name: "Rutte", title: "Rutte", icon: "👑" },
-  { min: 7500, name: "Drees", title: "Drees", icon: "👑" },
-  { min: 10000, name: "Wilhelmina", title: "Wilhelmina", icon: "👑" }
-];
-
-let state = JSON.parse(localStorage.getItem(STORAGE) || 'null') || {
-  unlocked: false, studentName: '', score: 0, correct: 0, wrong: 0, streak: 0,
-  mastery: {}, queue: [], asked: 0, daily: {}, lastDate: ''
-};
-
-let current = null;
-let answered = false;
-let lastQuestionIndex = null;
-
-const norm = s => String(s ?? '').toLowerCase().trim().replace(/\s+/g, ' ');
-
-
-
-function answerNorm(s) {
-  return norm(s)
-    .replace(/^[\s.,;:!?]+|[\s.,;:!?]+$/g, '')
-    .replace(/^(de|het|een)\s+/, '')
-    .replace(/[\s-]+/g, '');
-}
-
-function answersMatch(given, expected) {
-  const a = answerNorm(given);
-  const b = answerNorm(expected);
-  if (a === b) return true;
-
-  // Accept simple Dutch singular/plural variants.
-  // This intentionally handles common endings without making spelling
-  // errors broadly acceptable.
-  const variants = s => {
-    const out = new Set([s]);
-    if (s.endsWith('s')) out.add(s.slice(0, -1));
-    if (s.endsWith('en')) out.add(s.slice(0, -2));
-    if (s.endsWith('eren')) out.add(s.slice(0, -2)); // e.g. ...
-    if (s.endsWith('e')) out.add(s.slice(0, -1));
-    else out.add(s + 'e');
-    out.add(s + 's');
-    out.add(s + 'en');
-    return out;
-  };
-
-  for (const av of variants(a)) {
-    for (const bv of variants(b)) {
-      if (av === bv) return true;
-    }
-  }
-  return false;
-}
-
-function displayQuestion(text) {
-  // Alleen de eerste letter van de omschrijving wordt netjes als zin weergegeven.
-  // De rest van de oorspronkelijke spelling blijft behouden.
-  const s = String(text ?? '').trim();
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-}
-
-function getRank(score) {
-  let rank = RANKS[0];
-  for (const r of RANKS) if (score >= r.min) rank = r;
-  return rank;
-}
-
-function getNextRank(score) {
-  for (const r of RANKS) if (score < r.min) return r;
-  return null;
-}
-
-function save() {
-  localStorage.setItem(STORAGE, JSON.stringify(state));
-}
-
-function todayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-function updateDaily() {
-  const key = todayKey();
-  const count = state.daily?.[key] || 0;
-  $('todayCount').textContent = count;
-}
-
-function recordQuestionToday() {
-  const key = todayKey();
-  if (!state.daily) state.daily = {};
-  state.daily[key] = (state.daily[key] || 0) + 1;
-  // Keep a sensible amount of history in localStorage.
-  const keys = Object.keys(state.daily).sort();
-  if (keys.length > 60) delete state.daily[keys[0]];
-}
-
-function updateRank() {
-  // Eén centrale rangweergave: alle rangvelden worden altijd uit state.score berekend.
-  const score = Math.max(0, Number(state.score) || 0);
-  const rank = getRank(score);
-  const next = getNextRank(score);
-
-  let progress = 100;
-  let nextText = 'Je hebt de hoogste rang bereikt!';
-  let progressText = 'Hoogste rang bereikt';
-  if (next) {
-    const range = Math.max(1, next.min - rank.min);
-    progress = Math.max(0, Math.min(100, ((score - rank.min) / range) * 100));
-    nextText = `Nog ${next.min - score} punten tot ${next.icon} ${next.title}`;
-    progressText = `${score - rank.min} / ${range} punten`;
-  }
-
-  // Afronden alleen voor de tekst; de CSS-balk krijgt de exacte waarde.
-  const pct = Math.round(progress);
-
-  const setText = (id, value) => {
-    const el = $(id);
-    if (el) el.textContent = value;
-  };
-  const setWidth = (id, value) => {
-    const el = $(id);
-    if (el) {
-      el.style.width = `${value}%`;
-      el.setAttribute('aria-valuenow', String(value));
-    }
-  };
-
-  // Dashboard
-  setText('rankIcon', rank.icon);
-  setText('rankTitle', rank.title);
-  setText('rankScore', `${score} punten`);
-  setText('nextRankText', nextText);
-  setWidth('rankBar', pct);
-
-  // Oefenscherm
-  setText('trainerRankIcon', rank.icon);
-  setText('trainerRankTitle', rank.title);
-  setText('trainerRankScore', `${score} punten`);
-  setText('trainerNextRankText', nextText);
-  setText('trainerRankProgressText', progressText);
-  setWidth('trainerRankBar', pct);
-
-  // Extra directe koppeling: als de rangkaart bestaat, schrijf de score ook als data-attribuut.
-  const card = document.querySelector('.trainer-rank-card');
-  if (card) {
-    card.dataset.score = String(score);
-    card.dataset.rank = rank.title;
-  }
-}
-
-function updateMasteryNow() {
-  const mastered = Object.values(state.mastery || {}).filter(v => Number(v) >= 3).length;
-  const total = BANK.length;
-  const el = $('masteredCount');
-  if (el) el.textContent = `${mastered}/${total}`;
-  renderConceptOverview();
-}
-
-
-function updateStats() {
-  const setText = (id, value) => {
-    const el = $(id);
-    if (el) el.textContent = value;
-  };
-  setText('score', state.score);
-  setText('correct', state.correct);
-  setText('wrong', state.wrong);
-  setText('streak', state.streak);
-
-  const mastered = Object.values(state.mastery || {}).filter(v => Number(v) >= 3).length;
-  const total = BANK.length;
-  const pct = total ? Math.round(mastered / total * 100) : 0;
-  setText('masteryPct', pct + '%');
-  setText('progressText', `${mastered} van ${total} beheerst`);
-  if ($('barFill')) $('barFill').style.width = pct + '%';
-  setText('progressTextHome', `${mastered} van ${total} beheerst`);
-  if ($('barFillHome')) $('barFillHome').style.width = pct + '%';
-  setText('progressTextTrainer', `${mastered} van ${total} beheerst`);
-  if ($('barFillTrainer')) $('barFillTrainer').style.width = pct + '%';
-  setText('masteryPctHome', pct + '%');
-  setText('wrongHome', state.wrong);
-  setText('streakHome', state.streak);
-  updateDaily();
-
-  // BELANGRIJK: rang altijd als laatste opnieuw tekenen vanuit dezelfde actuele score.
-  updateRank();
-}
-
-
-// Houd de rangkaart ook synchroon als de score door een andere functie wordt aangepast.
-// Dit is een extra veiligheidsnet tegen oude/cached codepaden.
-function installRankSync() {
-  const scoreEl = $('score');
-  if (!scoreEl || scoreEl.__rankSyncInstalled) return;
-  scoreEl.__rankSyncInstalled = true;
-  const observer = new MutationObserver(() => updateRank());
-  observer.observe(scoreEl, { childList: true, characterData: true, subtree: true });
-}
-
-function buildQueue() {
-  // Begrippen die 3x goed zijn beantwoord zijn beheerst en verdwijnen
-  // definitief uit de oefenreeks totdat de leerling de voortgang wist.
-  const weighted = [];
-  BANK.forEach((q, i) => {
-    const mastery = Number(state.mastery[i] || 0);
-    if (mastery >= 3) return;
-    const weight = Math.max(1, 4 - mastery);
-    for (let n = 0; n < weight; n++) weighted.push(i);
-  });
-  for (let i = weighted.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [weighted[i], weighted[j]] = [weighted[j], weighted[i]];
-  }
-  state.queue = weighted.slice(0, Math.min(weighted.length, 40));
-}
-
-function renderConceptOverview() {
-  const list = $('conceptList');
-  if (!list) return;
-  list.innerHTML = '';
-  BANK.forEach((q, i) => {
-    const mastery = Number(state.mastery[i] || 0);
-    const mastered = mastery >= 3;
-    const item = document.createElement('div');
-    item.className = 'concept-item' + (mastered ? ' mastered' : '');
-    const answers = escapeHtml(q.answers.join(' / '));
-    item.setAttribute('role','button');
-    item.setAttribute('tabindex','0');
-    item.dataset.index = String(i);
-    item.setAttribute('aria-label', `Bekijk uitleg van ${q.answers.join(' / ')}`);
-    item.innerHTML = `
-      <div class="concept-status">${mastered ? '✓' : '○'}</div>
-      <div class="concept-name"><b>${answers}</b><span>${mastered ? 'Beheerst' : `${Math.min(mastery,3)} / 3 goed`}</span></div>
-      <div class="concept-open">›</div>
-    `;
-    list.appendChild(item);
-  });
-  const mastered = BANK.filter((_, i) => Number(state.mastery[i] || 0) >= 3).length;
-  const title = $('conceptOverviewCount');
-  if (title) title.textContent = `${mastered} van ${BANK.length} beheerst`;
-  const pageCount = $('conceptPageCount');
-  if (pageCount) pageCount.textContent = `${mastered} van ${BANK.length} beheerst`;
-  const pageBar = $('conceptPageBar');
-  if (pageBar) pageBar.style.width = `${BANK.length ? Math.round(mastered / BANK.length * 100) : 0}%`;
-}
-
-function openConceptDetail(index) {
-  const q = BANK[index];
-  if (!q) return;
-  const mastery = Number(state.mastery[index] || 0);
-  const title = $('conceptDetailTitle');
-  const short = $('conceptDetailShort');
-  const long = $('conceptDetailLong');
-  const status = $('conceptDetailStatus');
-  if (title) title.textContent = q.answers.join(' / ');
-  if (short) short.textContent = q.question || 'Geen korte omschrijving beschikbaar.';
-  if (long) long.textContent = q.explanation || 'Voor dit begrip is nog geen uitgebreide uitleg beschikbaar.';
-  if (status) status.textContent = mastery >= 3 ? '✓ Beheerst' : `${Math.min(mastery,3)} / 3 goed`;
-  $('conceptDetail').classList.remove('hidden');
-}
-
-function closeConceptDetail() {
-  const modal = $('conceptDetail');
-  if (modal) modal.classList.add('hidden');
-}
-
-function nextQuestion() {
-  if (!BANK.length) {
-    $('question').textContent = 'Er zijn geen vragen geladen.';
-    return;
-  }
-  if (!state.queue.length) buildQueue();
-  // Verwijder ook oude wachtrij-items die inmiddels beheerst zijn.
-  state.queue = state.queue.filter(i => Number(state.mastery[i] || 0) < 3);
-  if (!state.queue.length) {
-    current = null;
-    answered = false;
-    $('questionNo').textContent = 'Klaar!';
-    $('question').textContent = '🎉 Je hebt alle namen en begrippen beheerst!';
-    $('feedback').className = 'feedback good';
-    $('feedback').textContent = 'Je kunt opnieuw beginnen via het overzicht als je alles nog eens wilt oefenen.';
-    $('answer').disabled = true;
-    $('checkBtn').classList.add('hidden');
-    $('skipBtn').classList.add('hidden');
-    $('nextBtn').classList.add('hidden');
-  $('skipBtn').classList.remove('hidden');
-    return;
-  }
-
-  // Voorkom dat dezelfde vraag direct opnieuw verschijnt.
-  if (lastQuestionIndex !== null && state.queue.length > 1 && state.queue[0] === lastQuestionIndex) {
-    const alternate = state.queue.findIndex(i => i !== lastQuestionIndex);
-    if (alternate > 0) {
-      [state.queue[0], state.queue[alternate]] = [state.queue[alternate], state.queue[0]];
-    }
-  }
-
-  const idx = state.queue.shift();
-  lastQuestionIndex = idx;
-  current = { ...BANK[idx], idx };
-  answered = false;
-  state.asked++;
-  recordQuestionToday();
-
-  $('questionNo').textContent = `Vraag ${state.asked}`;
-  $('question').textContent = displayQuestion(current.question);
-  $('answer').value = '';
-  $('answer').disabled = false;
-  $('checkBtn').disabled = false;
-  $('checkBtn').textContent = 'Controleer';
-  $('checkBtn').classList.remove('hidden');
-  $('nextBtn').classList.add('hidden');
-  $('feedback').className = 'feedback';
-  $('feedback').textContent = '';
-  save();
-
-  if (window.matchMedia('(min-width: 700px)').matches) $('answer').focus();
-}
-
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, ch => ({
-    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-  }[ch]));
-}
-
-function check() {
-  if (!current || answered) return;
-  const given = norm($('answer').value);
-  if (!given) {
-    $('feedback').className = 'feedback error';
-    $('feedback').textContent = 'Vul eerst een antwoord in.';
-    $('answer').focus();
-    return;
-  }
-
-  answered = true;
-  const ok = current.answers.some(a => answersMatch(given, a));
-  const oldRank = getRank(state.score);
-
-  if (ok) {
-    state.correct++;
-    state.score += 10;
-    state.streak++;
-    state.mastery[current.idx] = (state.mastery[current.idx] || 0) + 1;
-    if (state.mastery[current.idx] >= 3) {
-      state.queue = state.queue.filter(i => i !== current.idx);
-    }
-    $('feedback').className = 'feedback good';
-    $('feedback').textContent = '✓ Goed! +10 punten';
-    $('checkBtn').textContent = 'Extra uitleg';
-    $('checkBtn').disabled = false;
-  } else {
-    state.wrong++;
-    state.score = Math.max(0, state.score - 2);
-    state.streak = 0;
-    state.mastery[current.idx] = Math.max(0, (state.mastery[current.idx] || 0) - 1);
-    state.queue.push(current.idx);
-    $('feedback').className = 'feedback error';
-    $('feedback').innerHTML =
-      `<div class="feedback-title">✗ Nog niet goed</div>
-       <div><b>Goed antwoord:</b> ${escapeHtml(current.answers.join(' / '))}</div>
-       <div class="explanation"><b>Uitleg:</b><br>${escapeHtml(current.explanation || 'Voor deze vraag is nog geen uitgebreide uitleg beschikbaar.')}</div>`;
-  }
-
-  const newRank = getRank(state.score);
-  $('answer').disabled = true;
-  // After a correct answer the button becomes the optional "Extra uitleg" button.
-  // After a wrong answer the explanation is already shown and the button is disabled.
-  $('checkBtn').disabled = !ok;
-  $('nextBtn').classList.remove('hidden');
-  updateStats();
-  updateMasteryNow();
-  save();
-
-  if (newRank.min > oldRank.min) {
-    setTimeout(() => {
-      $('rankUpIcon').textContent = newRank.icon;
-      $('rankUpTitle').textContent = newRank.title;
-      $('rankUp').classList.remove('hidden');
-    }, 350);
-  }
-}
-
-function updateStudentName() {
-  const name = String(state.studentName || '').trim();
-  const display = $('studentNameDisplay');
-  if (display) display.textContent = name || 'leerling';
-}
-
-const NAME_ALLOWED = /^[\p{L}]+(?: [\p{L}]+)*$/u;
-// Veelvoorkomende grove, discriminerende of kwetsende woorden. Dit is geen volledige lijst.
-const BLOCKED_NAME_TERMS = [
-  'fuck','fucking','fucker','shit','shite','bitch','bastard','asshole','dick','piss','cunt',
-  'kanker','tering','tyfus','kut','klote','godver','godverdomme','hoer','slet','lul','mongool',
-  'homo','flikker','nigger','negro','jood','kike','chink','spic','wetback','retard','tranny',
-  'naz i','nazi','hitler'
-];
-
-function validStudentName(name) {
-  const value = String(name || '').trim().replace(/\s+/g, ' ');
-  if (!value || value.length > 40) return { ok:false, message:'Vul een naam in van maximaal 40 tekens.' };
-  if (!NAME_ALLOWED.test(value)) return { ok:false, message:'Je naam mag alleen uit letters en spaties bestaan.' };
-  const lower = value.toLocaleLowerCase('nl-NL');
-  const compact = lower.replace(/[ -]/g, '');
-  if (BLOCKED_NAME_TERMS.some(term => compact.includes(term.replace(/[^\p{L}]/gu,'')))) {
-    return { ok:false, message:'Deze naam kan niet worden gebruikt. Kies een normale, respectvolle naam.' };
-  }
-  return { ok:true, value };
-}
-
-function unlock() {
-  const rawName = String($('studentName')?.value || state.studentName || '').trim();
-  const nameCheck = validStudentName(rawName);
-  if (!nameCheck.ok) {
-    $('gateMsg').textContent = nameCheck.message;
-    $('gateMsg').className = 'msg error';
-    $('studentName').focus();
-    return;
-  }
-  const name = nameCheck.value;
-
-  // Als de leerling al eerder is ingelogd, is de docentcode niet opnieuw nodig.
-  if (state.unlocked) {
-    if (name) state.studentName = name;
-    save();
-    showApp();
-    return;
-  }
-
-  if (!name) {
-    $('gateMsg').textContent = 'Vul eerst je naam in.';
-    $('gateMsg').className = 'msg error';
-    $('studentName').focus();
-    return;
-  }
-
-  if (norm($('accessCode').value) === norm(APP_CONFIG.teacherCode)) {
-    state.unlocked = true;
-    state.studentName = name;
-    save();
-    showApp();
-  } else {
-    $('gateMsg').textContent = 'De code klopt niet. Vraag je docent om de juiste code.';
-    $('gateMsg').className = 'msg error';
-  }
-}
-
-function showApp() {
-  $('gate').classList.add('hidden');
-  $('app').classList.remove('hidden');
-  $('homeScreen').classList.remove('hidden');
-  $('conceptScreen').classList.add('hidden');
-  $('trainerScreen').classList.add('hidden');
-  updateStats();
-  updateMasteryNow();
-}
-
-$('unlockBtn').onclick = unlock;
-$('studentName').onkeydown = e => { if (e.key === 'Enter') $('accessCode').focus(); };
-$('studentName').value = state.studentName || '';
-updateStudentName();
-$('accessCode').onkeydown = e => { if (e.key === 'Enter') unlock(); };
-$('checkBtn').onclick = () => {
-  if (answered) {
-    showExtraExplanation();
-  } else {
-    check();
+const STORAGE = 'geschiedenisTrainerV40';
+const MODULES = {
+  staatsinrichting: {
+    key:'staatsinrichting', label:'Staatsinrichting', icon:'🏛️', bank:Array.isArray(QUESTIONS)?QUESTIONS:[],
+    ranks:[
+      {min:0,name:'Willem III',icon:'👑'},{min:100,name:'Schoof',icon:'👑'},{min:250,name:'Balkenende',icon:'👑'},
+      {min:500,name:'Juliana',icon:'👑'},{min:750,name:'Willem II',icon:'👑'},{min:1000,name:'Colijn',icon:'👑'},
+      {min:1500,name:'Balkenende',icon:'👑'},{min:2500,name:'Beatrix',icon:'👑'},{min:5000,name:'Rutte',icon:'👑'},
+      {min:7500,name:'Drees',icon:'👑'},{min:10000,name:'Wilhelmina',icon:'👑'}
+    ]
+  },
+  eersteWereldoorlog: {
+    key:'eersteWereldoorlog', label:'Eerste Wereldoorlog', icon:'⚔️', bank:Array.isArray(WW1_QUESTIONS)?WW1_QUESTIONS:[],
+    ranks:[
+      {min:0,name:'Koning van Italië',icon:'👑'},{min:150,name:'Sultan van het Ottomaanse Rijk',icon:'👑'},
+      {min:400,name:'President van Frankrijk',icon:'👑'},{min:800,name:'Keizer van Duitsland',icon:'👑'},
+      {min:1200,name:'Koning van Groot-Brittannië',icon:'👑'}
+    ]
   }
 };
-$('nextBtn').onclick = nextQuestion;
-$('startTrainingBtn').onclick = () => {
-  $('homeScreen').classList.add('hidden');
-  $('conceptScreen').classList.add('hidden');
-  $('trainerScreen').classList.remove('hidden');
-  nextQuestion();
-};
-$('conceptOverviewBtn').onclick = () => {
-  $('homeScreen').classList.add('hidden');
-  $('trainerScreen').classList.add('hidden');
-  $('conceptScreen').classList.remove('hidden');
-  renderConceptOverview();
-};
-$('conceptList').addEventListener('click', e => {
-  const item = e.target.closest('.concept-item');
-  if (item && item.dataset.index !== undefined) openConceptDetail(Number(item.dataset.index));
-});
-$('conceptList').addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    const item = e.target.closest('.concept-item');
-    if (item && item.dataset.index !== undefined) { e.preventDefault(); openConceptDetail(Number(item.dataset.index)); }
-  }
-});
-$('closeConceptDetail').onclick = closeConceptDetail;
-$('closeConceptDetailBtn').onclick = closeConceptDetail;
-$('conceptDetail').addEventListener('click', e => { if (e.target === $('conceptDetail')) closeConceptDetail(); });
-
-$('backFromConceptsBtn').onclick = () => {
-  $('conceptScreen').classList.add('hidden');
-  $('homeScreen').classList.remove('hidden');
-  updateStats();
-  updateMasteryNow();
-};
-$('backHomeBtn').onclick = () => {
-  $('trainerScreen').classList.add('hidden');
-  $('conceptScreen').classList.add('hidden');
-  $('homeScreen').classList.remove('hidden');
-  updateStats();
-  updateMasteryNow();
-};
-$('answer').onkeydown = e => { if (e.key === 'Enter') check(); };
-$('skipBtn').onclick = () => {
-  if (current && !answered) {
-    state.queue.push(current.idx);
-    save();
-    nextQuestion();
-  }
-};
-$('closeRankUp').onclick = () => $('rankUp').classList.add('hidden');
-$('teacherBtn').onclick = () => $('teacherPanel').classList.remove('hidden');
-$('closeTeacher').onclick = () => $('teacherPanel').classList.add('hidden');
-
-let deferredInstallPrompt = null;
-
-function isInstalled() {
-  return window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true ||
-    document.referrer.startsWith('android-app://');
+let state = JSON.parse(localStorage.getItem(STORAGE)||'null');
+if (!state) {
+  const old = JSON.parse(localStorage.getItem('geschiedenisTrainerV34')||'null');
+  state = {unlocked:!!old?.unlocked,studentName:old?.studentName||'',topics:{}};
+  if(old) state.topics.staatsinrichting=old;
 }
-
-function setInstallVisibility() {
-  const installed = isInstalled();
-  const gateBtn = $('installBtn');
-  const homeCard = $('installHomeCard');
-  const homeBtn = $('installHomeBtn');
-  if (gateBtn) gateBtn.classList.toggle('hidden', installed);
-  if (homeCard) homeCard.classList.toggle('hidden', installed);
-  if (homeBtn) homeBtn.classList.toggle('hidden', installed);
+for(const key of Object.keys(MODULES)) if(!state.topics[key]) state.topics[key]=blankTopic();
+function blankTopic(){return {score:0,correct:0,wrong:0,streak:0,mastery:{},queue:[],asked:0,daily:{},lastDate:''};}
+let activeKey='staatsinrichting', current=null, answered=false, lastQuestionIndex=null;
+const norm=s=>String(s??'').toLocaleLowerCase('nl-NL').trim().replace(/\s+/g,' ');
+function answerNorm(s){return norm(s).replace(/^[\s.,;:!?]+|[\s.,;:!?]+$/g,'').replace(/^(de|het|een)\s+/,'').replace(/[\s-]+/g,'');}
+function answersMatch(given,expected){
+  const a=answerNorm(given), b=answerNorm(expected); if(a===b)return true;
+  const variants=s=>{const o=new Set([s]); if(s.endsWith('s'))o.add(s.slice(0,-1)); if(s.endsWith('en'))o.add(s.slice(0,-2)); if(s.endsWith('eren'))o.add(s.slice(0,-2)); if(s.endsWith('e'))o.add(s.slice(0,-1)); else o.add(s+'e'); o.add(s+'s');o.add(s+'en');return o};
+  for(const x of variants(a))for(const y of variants(b))if(x===y)return true; return false;
 }
-
-function showInstallFallback(targetHelp) {
-  const help = targetHelp || $('installHelp');
-  if (!help) return;
-  help.classList.remove('hidden');
-  const ua = navigator.userAgent.toLowerCase();
-  if (/iphone|ipad|ipod/.test(ua)) {
-    help.innerHTML = '<b>iPhone/iPad:</b> tik op <b>Deel</b> en kies <b>Zet op beginscherm</b>.';
-  } else if (/android/.test(ua)) {
-    help.innerHTML = '<b>Android:</b> tik rechtsboven op <b>⋮</b> en kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.';
-  } else {
-    help.innerHTML = '<b>Computer:</b> zoek het installatie-icoon in de adresbalk. <br><b>Chrome/Edge:</b> open het menu en kies <b>App installeren</b> of <b>Installeren</b>.';
-  }
-}
-
-async function installApp(helpElement) {
-  if (deferredInstallPrompt) {
-    try {
-      deferredInstallPrompt.prompt();
-      const result = await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      if (result && result.outcome === 'accepted') setInstallVisibility();
-      else if (result && result.outcome !== 'accepted') showInstallFallback(helpElement);
-    } catch (_) {
-      showInstallFallback(helpElement);
-    }
-    return;
-  }
-  showInstallFallback(helpElement);
-}
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  setInstallVisibility();
-});
-
-const gateInstallBtn = $('installBtn');
-if (gateInstallBtn) gateInstallBtn.onclick = () => installApp($('installHelp'));
-const homeInstallBtn = $('installHomeBtn');
-if (homeInstallBtn) homeInstallBtn.onclick = () => installApp($('installHomeHelp'));
-
-window.addEventListener('appinstalled', () => {
-  deferredInstallPrompt = null;
-  setInstallVisibility();
-});
-
-$('answer').addEventListener('focus', () => {
-  setTimeout(() => $('answer').scrollIntoView({behavior:'smooth', block:'center'}), 250);
-});
-
-function resetProgress() {
-  const first = confirm(`Let op: hiermee worden al je punten, goede en foute antwoorden, reeks, dagelijkse score en begrippenvoortgang gewist. Je naam en toegang blijven behouden.\n\nWil je echt opnieuw beginnen?`);
-  if (!first) return;
-  const second = prompt('Laatste controle: typ OPNIEUW om je voortgang definitief te wissen.');
-  if (second !== 'OPNIEUW') {
-    alert('De voortgang is niet gewist.');
-    return;
-  }
-
-  state.score = 0;
-  state.correct = 0;
-  state.wrong = 0;
-  state.streak = 0;
-  state.mastery = {};
-  state.queue = [];
-  state.asked = 0;
-  state.daily = {};
-  state.lastDate = '';
-  save();
-  current = null;
-  answered = false;
-  lastQuestionIndex = null;
-  updateStats();
-  updateMasteryNow();
-  alert('Je voortgang is gewist. Je kunt opnieuw beginnen!');
-}
-const resetTeacherBtn = $('resetBtn'); if (resetTeacherBtn) resetTeacherBtn.onclick = resetProgress;
-const resetHomeBtn = $('resetProgressHomeBtn'); if (resetHomeBtn) resetHomeBtn.onclick = resetProgress;
-
-installRankSync();
-updateInstallButton();
-window.addEventListener('pageshow', updateInstallButton);
-window.addEventListener('visibilitychange', () => { if (!document.hidden) updateInstallButton(); });
-updateStats();
-  updateMasteryNow();
-updateDaily();
-if (state.unlocked) showApp();
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=34').catch(() => {});
+function topic(){return MODULES[activeKey]}
+function ts(){return state.topics[activeKey]}
+function save(){localStorage.setItem(STORAGE,JSON.stringify(state));}
+function todayKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function displayQuestion(s){s=String(s??'').trim();return s?s[0].toUpperCase()+s.slice(1):s}
+function getRank(score){let r=topic().ranks[0];for(const x of topic().ranks)if(score>=x.min)r=x;return r}
+function getNextRank(score){return topic().ranks.find(x=>score<x.min)||null}
+function progressInfo(score){const r=getRank(score),n=getNextRank(score);if(!n)return {pct:100,text:'Hoogste rang bereikt',next:'Je hebt de hoogste rang bereikt!'};const range=n.min-r.min;return {pct:Math.max(0,Math.min(100,((score-r.min)/range)*100)),text:`${score-r.min} / ${range} punten`,next:`Nog ${n.min-score} punten tot ${n.icon} ${n.name}`}}
+function updateRank(){const t=ts(),r=getRank(t.score),p=progressInfo(t.score);for(const [id,val] of [['rankIcon',r.icon],['rankTitle',r.name],['rankScore',`${t.score} punten`],['nextRankText',p.next],['trainerRankIcon',r.icon],['trainerRankTitle',r.name],['trainerRankScore',`${t.score} punten`],['trainerNextRankText',p.next],['trainerRankProgressText',p.text]])if($(id))$(id).textContent=val;for(const id of ['rankBar','trainerRankBar'])if($(id))$(id).style.width=p.pct+'%';}
+function updateStats(){const t=ts(),bank=topic().bank,mastered=bank.filter((_,i)=>(t.mastery[i]||0)>=3).length,pct=bank.length?Math.round(mastered/bank.length*100):0;for(const [id,val] of [['score',t.score],['correct',t.correct],['wrong',t.wrong],['streak',t.streak],['wrongHome',t.wrong],['streakHome',t.streak],['masteryPctHome',pct+'%'],['progressTextHome',`${mastered} van ${bank.length} beheerst`],['progressText',`${mastered} van ${bank.length} beheerst`],['progressTextTrainer',`${mastered} van ${bank.length} beheerst`],['masteryPct',pct+'%'],['todayCount',t.daily?.[todayKey()]||0],['conceptOverviewCount',`${mastered} van ${bank.length} beheerst`],['conceptPageCount',`${mastered} van ${bank.length} beheerst`]])if($(id))$(id).textContent=val;for(const id of ['barFillHome','barFill','barFillTrainer','conceptPageBar'])if($(id))$(id).style.width=pct+'%';updateRank();}
+function buildQueue(){const t=ts(),bank=topic().bank,w=[];bank.forEach((q,i)=>{const m=Number(t.mastery[i]||0);if(m>=3)return;for(let n=0;n<Math.max(1,4-m);n++)w.push(i)});for(let i=w.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[w[i],w[j]]=[w[j],w[i]]}t.queue=w.slice(0,Math.min(w.length,40));}
+function renderConceptOverview(){const list=$('conceptList');if(!list)return;const bank=topic().bank,t=ts();list.innerHTML='';bank.forEach((q,i)=>{const m=Number(t.mastery[i]||0),mastered=m>=3,item=document.createElement('div');item.className='concept-item'+(mastered?' mastered':'');item.dataset.index=i;item.tabIndex=0;item.setAttribute('role','button');item.innerHTML=`<div class="concept-status">${mastered?'✓':'○'}</div><div class="concept-name"><b>${escapeHtml(q.answers[0])}</b><span>${mastered?'Beheerst':`${Math.min(m,3)} / 3 goed`}</span></div><div class="concept-open">›</div>`;list.appendChild(item)});updateStats();}
+function openConceptDetail(i){const q=topic().bank[i];if(!q)return;const m=ts().mastery[i]||0;$('conceptDetailTitle').textContent=q.answers.join(' / ');$('conceptDetailShort').textContent=q.question;$('conceptDetailLong').textContent=q.explanation||'Geen extra uitleg beschikbaar.';$('conceptDetailStatus').textContent=m>=3?'✓ Beheerst':`${Math.min(m,3)} / 3 goed`;$('conceptDetail').classList.remove('hidden');}
+function closeConceptDetail(){$('conceptDetail').classList.add('hidden')}
+function nextQuestion(){const t=ts(),bank=topic().bank;if(!bank.length){$('question').textContent='Er zijn geen vragen geladen.';return}if(!t.queue.length)buildQueue();t.queue=t.queue.filter(i=>(t.mastery[i]||0)<3);if(!t.queue.length){current=null;answered=false;$('questionNo').textContent='Klaar!';$('question').textContent='🎉 Je hebt alle namen en begrippen beheerst!';$('feedback').className='feedback good';$('feedback').textContent='Je kunt via het overzicht een ander onderwerp kiezen.';$('answer').disabled=true;$('checkBtn').classList.add('hidden');$('skipBtn').classList.add('hidden');$('nextBtn').classList.add('hidden');return}if(lastQuestionIndex!==null&&t.queue.length>1&&t.queue[0]===lastQuestionIndex){const a=t.queue.findIndex(i=>i!==lastQuestionIndex);if(a>0)[t.queue[0],t.queue[a]]=[t.queue[a],t.queue[0]]}const idx=t.queue.shift();lastQuestionIndex=idx;current={...bank[idx],idx};answered=false;t.asked++;if(!t.daily)t.daily={};t.daily[todayKey()]=(t.daily[todayKey()]||0)+1;$('questionNo').textContent=`Vraag ${t.asked}`;$('categoryBadge').textContent=topic().label;$('question').textContent=displayQuestion(current.question);$('answer').value='';$('answer').disabled=false;$('checkBtn').disabled=false;$('checkBtn').textContent='Controleer';$('checkBtn').classList.remove('hidden');$('nextBtn').classList.add('hidden');$('feedback').className='feedback';$('feedback').textContent='';save();if(window.matchMedia('(min-width:700px)').matches)$('answer').focus();updateStats();}
+function showExtraExplanation(){if(!current)return;$('feedback').className='feedback info';$('feedback').innerHTML=`<div class="feedback-title">💡 Extra uitleg</div><div class="explanation"><b>Uitleg:</b><br>${escapeHtml(current.explanation||'Geen extra uitleg beschikbaar.')}</div>`}
+function check(){if(!current||answered)return;const given=$('answer').value;if(!norm(given)){ $('feedback').className='feedback error';$('feedback').textContent='Vul eerst een antwoord in.';return }answered=true;const accepted=[...(current.answers||[]),...(current.alsoGood||[])];const ok=accepted.some(a=>answersMatch(given,a));const t=ts(),oldRank=getRank(t.score);if(ok){t.correct++;t.score+=10;t.streak++;t.mastery[current.idx]=(t.mastery[current.idx]||0)+1;if(t.mastery[current.idx]>=3)t.queue=t.queue.filter(i=>i!==current.idx);$('feedback').className='feedback good';$('feedback').textContent='✓ Goed! +10 punten';$('checkBtn').textContent='Extra uitleg';$('checkBtn').disabled=false}else{t.wrong++;t.score=Math.max(0,t.score-2);t.streak=0;t.mastery[current.idx]=Math.max(0,(t.mastery[current.idx]||0)-1);t.queue.push(current.idx);$('feedback').className='feedback error';$('feedback').innerHTML=`<div class="feedback-title">✗ Nog niet goed</div><div><b>Goed antwoord:</b> ${escapeHtml(current.answers.join(' / '))}</div>${current.alsoGood?.length?`<div><b>Ook goed:</b> ${escapeHtml(current.alsoGood.join(' / '))}</div>`:''}<div class="explanation"><b>Uitleg:</b><br>${escapeHtml(current.explanation||'Geen extra uitleg beschikbaar.')}</div>`}$('answer').disabled=true;$('checkBtn').disabled=!ok;$('nextBtn').classList.remove('hidden');updateStats();renderConceptOverview();save();const nr=getRank(t.score);if(nr.min>oldRank.min){setTimeout(()=>{$('rankUpIcon').textContent=nr.icon;$('rankUpTitle').textContent=nr.name;$('rankUp').classList.remove('hidden')},350)}}
+function updateStudentName(){if($('studentNameDisplay'))$('studentNameDisplay').textContent=state.studentName||'leerling'}
+const NAME_ALLOWED=/^[\p{L}]+(?: [\p{L}]+)*$/u;const BLOCKED=['fuck','fucking','fucker','shit','bitch','bastard','asshole','dick','piss','cunt','kanker','tering','tyfus','kut','klote','godver','hoer','slet','lul','mongool','nigger','nazi','hitler'];
+function validStudentName(name){const v=String(name||'').trim().replace(/\s+/g,' ');if(!v||v.length>40)return{ok:false,message:'Vul een naam in van maximaal 40 tekens.'};if(!NAME_ALLOWED.test(v))return{ok:false,message:'Je naam mag alleen uit letters en spaties bestaan.'};const c=v.toLocaleLowerCase('nl-NL').replace(/[ -]/g,'');if(BLOCKED.some(x=>c.includes(x)))return{ok:false,message:'Deze naam kan niet worden gebruikt. Kies een normale, respectvolle naam.'};return{ok:true,value:v}}
+function unlock(){const raw=$('studentName').value.trim(),v=validStudentName(raw);if(!v.ok){$('gateMsg').textContent=v.message;$('gateMsg').className='msg error';return}if(state.unlocked){state.studentName=v.value;save();showApp();return}if(norm($('accessCode').value)===norm(APP_CONFIG.teacherCode)){state.unlocked=true;state.studentName=v.value;save();showApp()}else{$('gateMsg').textContent='De code klopt niet. Vraag je docent om de juiste code.';$('gateMsg').className='msg error'}}
+function showApp(){$('gate').classList.add('hidden');$('app').classList.remove('hidden');showHome();updateStudentName();updateStats();}
+function showHome(){$('homeScreen').classList.remove('hidden');$('topicScreen').classList.add('hidden');$('trainerScreen').classList.add('hidden');$('conceptScreen').classList.add('hidden');renderTopicChooser();updateStats()}
+function renderTopicChooser(){const box=$('topicChooser');if(!box)return;box.innerHTML='';for(const m of Object.values(MODULES)){const t=state.topics[m.key],mastered=m.bank.filter((_,i)=>(t.mastery[i]||0)>=3).length,pct=m.bank.length?Math.round(mastered/m.bank.length*100):0;const el=document.createElement('button');el.className='topic-card card';el.innerHTML=`<div class="topic-icon">${m.icon}</div><div class="topic-main"><div class="eyebrow">ONDERWERP</div><h3>${escapeHtml(m.label)}</h3><p>${m.bank.length} begrippen • ${mastered} beheerst</p><div class="bar"><div style="width:${pct}%"></div></div></div><div class="topic-arrow">›</div>`;el.onclick=()=>selectTopic(m.key);box.appendChild(el)}const future=document.createElement('div');future.className='topic-card card topic-locked';future.innerHTML='<div class="topic-icon">🔒</div><div class="topic-main"><div class="eyebrow">BINNENKORT</div><h3>Nieuwe hoofdstukken</h3><p>Meer examenonderwerpen volgen later.</p></div>';box.appendChild(future)}
+function selectTopic(key){activeKey=key;$('homeScreen').classList.add('hidden');$('topicScreen').classList.remove('hidden');$('trainerScreen').classList.add('hidden');$('conceptScreen').classList.add('hidden');setModuleHome();}
+function renderTopicHome(){const m=topic(),t=ts(),mastered=m.bank.filter((_,i)=>(t.mastery[i]||0)>=3).length,pct=m.bank.length?Math.round(mastered/m.bank.length*100):0;$('topicTitle').textContent=m.label;$('topicDescription').textContent=m.label==='Staatsinrichting'?'Oefen de begrippen van Staatsinrichting.':'Oefen de begrippen van de Eerste Wereldoorlog.';$('topicEyebrow').textContent=m.label.toUpperCase();$('topicMastery').textContent=pct+'%';$('topicProgressText').textContent=`${mastered} van ${m.bank.length} beheerst`;updateStats();}
+function startTraining(){ $('homeScreen').classList.add('hidden');$('conceptScreen').classList.add('hidden');$('trainerScreen').classList.remove('hidden');$('trainerLabel').textContent=topic().label;nextQuestion();}
+function resetProgress(){const first=confirm(`Let op: hiermee wordt de voortgang van ${topic().label} gewist. Je naam en toegang blijven behouden.\n\nWil je echt opnieuw beginnen?`);if(!first)return;const second=prompt('Laatste controle: typ OPNIEUW om je voortgang definitief te wissen.');if(second!=='OPNIEUW'){alert('De voortgang is niet gewist.');return}state.topics[activeKey]=blankTopic();save();current=null;answered=false;lastQuestionIndex=null;updateStats();renderTopicChooser();alert('Je voortgang is gewist. Je kunt opnieuw beginnen!')}
+$('unlockBtn').onclick=unlock;$('studentName').value=state.studentName||'';$('studentName').onkeydown=e=>{if(e.key==='Enter')$('accessCode').focus()};$('accessCode').onkeydown=e=>{if(e.key==='Enter')unlock()};$('checkBtn').onclick=()=>answered?showExtraExplanation():check();$('nextBtn').onclick=nextQuestion;$('startTrainingBtn').onclick=startTraining;$('conceptOverviewBtn').onclick=()=>{$('homeScreen').classList.add('hidden');$('trainerScreen').classList.add('hidden');$('conceptScreen').classList.remove('hidden');renderConceptOverview()};$('conceptList').onclick=e=>{const i=e.target.closest('.concept-item');if(i)openConceptDetail(Number(i.dataset.index))};$('conceptList').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){const i=e.target.closest('.concept-item');if(i){e.preventDefault();openConceptDetail(Number(i.dataset.index))}}};$('closeConceptDetail').onclick=closeConceptDetail;$('closeConceptDetailBtn').onclick=closeConceptDetail;$('backFromConceptsBtn').onclick=showHome;$('backHomeBtn').onclick=showHome;$('backTopicBtn').onclick=showHome;$('answer').onkeydown=e=>{if(e.key==='Enter')check()};$('skipBtn').onclick=()=>{if(current&&!answered){ts().queue.push(current.idx);save();nextQuestion()}};$('closeRankUp').onclick=()=>$('rankUp').classList.add('hidden');$('teacherBtn').onclick=()=>$('teacherPanel').classList.remove('hidden');$('closeTeacher').onclick=()=>$('teacherPanel').classList.add('hidden');$('resetBtn').onclick=resetProgress;$('resetProgressHomeBtn').onclick=resetProgress;
+function setModuleHome(){const m=topic(),t=ts(),mastered=m.bank.filter((_,i)=>(t.mastery[i]||0)>=3).length,pct=m.bank.length?Math.round(mastered/m.bank.length*100):0;$('topicTitle').textContent=m.label;$('topicDescription').textContent=m.label==='Staatsinrichting'?'Oefen de begrippen van Staatsinrichting. Foute vragen komen later opnieuw terug.':'Oefen de begrippen van de Eerste Wereldoorlog. Foute vragen komen later opnieuw terug.';$('topicEyebrow').textContent=m.label.toUpperCase();$('topicMastery').textContent=pct+'%';$('topicProgressText').textContent=`${mastered} van ${m.bank.length} beheerst`;}
+$('topicBackBtn').onclick=showHome;
+// installatie
+let deferredInstallPrompt=null;function isInstalled(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||document.referrer.startsWith('android-app://')};function setInstallVisibility(){const ins=isInstalled();for(const id of ['installBtn','installHomeCard'])if($(id))$(id).classList.toggle('hidden',ins)}function showInstallFallback(el){if(!el)return;el.classList.remove('hidden');const ua=navigator.userAgent.toLowerCase();el.innerHTML=/iphone|ipad|ipod/.test(ua)?'<b>iPhone/iPad:</b> tik op <b>Deel</b> en kies <b>Zet op beginscherm</b>.':/android/.test(ua)?'<b>Android:</b> tik op <b>⋮</b> en kies <b>App installeren</b>.':'<b>Computer:</b> kies het installatie-icoon in de adresbalk of via het browsermenu.'}async function installApp(help){if(deferredInstallPrompt){try{deferredInstallPrompt.prompt();const r=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(r.outcome!=='accepted')showInstallFallback(help)}catch(e){showInstallFallback(help)}}else showInstallFallback(help)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;setInstallVisibility()});$('installBtn').onclick=()=>installApp($('installHelp'));$('installHomeBtn').onclick=()=>installApp($('installHomeHelp'));window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;setInstallVisibility()});
+setInstallVisibility();updateStudentName();updateStats();renderTopicChooser();if(state.unlocked)showApp();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=40').catch(()=>{});

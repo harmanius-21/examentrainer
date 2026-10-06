@@ -145,3 +145,7 @@ html,body{max-width:100%;overflow-x:hidden;}
   .install-home-card{flex-direction:column;align-items:stretch;text-align:left}
   .install-home-card .install{width:100%}
 }
+.topic-list{display:grid;gap:12px;margin-top:16px;width:100%}
+.topic-card{width:100%;display:flex;align-items:center;gap:14px;text-align:left;border:1px solid rgba(29,42,53,.12);cursor:pointer;padding:16px;background:rgba(255,255,255,.72);color:inherit}
+.topic-card:hover{transform:translateY(-1px)}
+.topic-icon{font-size:2rem;min-width:48px;text-align:center}.topic-main{flex:1;min-width:0}.topic-main h3{margin:2px 0 5px}.topic-main p{margin:0 0 8px}.topic-arrow{font-size:2rem;opacity:.6}.topic-card .bar{margin-top:5px}.topic-locked{opacity:.6;cursor:default}.topic-locked:hover{transform:none}

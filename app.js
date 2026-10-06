@@ -1,5 +1,5 @@
 const $ = id => document.getElementById(id);
-const STORAGE = 'geschiedenisTrainerV40';
+const STORAGE = 'geschiedenisTrainerV41';
 const MODULES = {
   staatsinrichting: {
     key:'staatsinrichting', label:'Staatsinrichting', icon:'🏛️', bank:Array.isArray(QUESTIONS)?QUESTIONS:[],
@@ -21,7 +21,7 @@ const MODULES = {
 };
 let state = JSON.parse(localStorage.getItem(STORAGE)||'null');
 if (!state) {
-  const old = JSON.parse(localStorage.getItem('geschiedenisTrainerV34')||'null');
+  const old = JSON.parse(localStorage.getItem('geschiedenisTrainerV40')||localStorage.getItem('geschiedenisTrainerV34')||'null');
   state = {unlocked:!!old?.unlocked,studentName:old?.studentName||'',topics:{}};
   if(old) state.topics.staatsinrichting=old;
 }
@@ -68,5 +68,6 @@ $('unlockBtn').onclick=unlock;$('studentName').value=state.studentName||'';$('st
 function setModuleHome(){const m=topic(),t=ts(),mastered=m.bank.filter((_,i)=>(t.mastery[i]||0)>=3).length,pct=m.bank.length?Math.round(mastered/m.bank.length*100):0;$('topicTitle').textContent=m.label;$('topicDescription').textContent=m.label==='Staatsinrichting'?'Oefen de begrippen van Staatsinrichting. Foute vragen komen later opnieuw terug.':'Oefen de begrippen van de Eerste Wereldoorlog. Foute vragen komen later opnieuw terug.';$('topicEyebrow').textContent=m.label.toUpperCase();$('topicMastery').textContent=pct+'%';$('topicProgressText').textContent=`${mastered} van ${m.bank.length} beheerst`;}
 $('topicBackBtn').onclick=showHome;
 // installatie
-let deferredInstallPrompt=null;function isInstalled(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||document.referrer.startsWith('android-app://')};function setInstallVisibility(){const ins=isInstalled();for(const id of ['installBtn','installHomeCard'])if($(id))$(id).classList.toggle('hidden',ins)}function showInstallFallback(el){if(!el)return;el.classList.remove('hidden');const ua=navigator.userAgent.toLowerCase();el.innerHTML=/iphone|ipad|ipod/.test(ua)?'<b>iPhone/iPad:</b> tik op <b>Deel</b> en kies <b>Zet op beginscherm</b>.':/android/.test(ua)?'<b>Android:</b> tik op <b>⋮</b> en kies <b>App installeren</b>.':'<b>Computer:</b> kies het installatie-icoon in de adresbalk of via het browsermenu.'}async function installApp(help){if(deferredInstallPrompt){try{deferredInstallPrompt.prompt();const r=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(r.outcome!=='accepted')showInstallFallback(help)}catch(e){showInstallFallback(help)}}else showInstallFallback(help)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;setInstallVisibility()});$('installBtn').onclick=()=>installApp($('installHelp'));$('installHomeBtn').onclick=()=>installApp($('installHomeHelp'));window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;setInstallVisibility()});
-setInstallVisibility();updateStudentName();updateStats();renderTopicChooser();if(state.unlocked)showApp();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=40').catch(()=>{});
+let deferredInstallPrompt=null;function isInstalled(){return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true||document.referrer.startsWith('android-app://')};function setInstallVisibility(){const ins=isInstalled();for(const id of ['installBtn','installHomeCard'])if($(id))$(id).classList.toggle('hidden',ins)}function showInstallFallback(el){if(!el)return;el.classList.remove('hidden');const ua=navigator.userAgent.toLowerCase();el.className='install-instructions';el.innerHTML=/iphone|ipad|ipod/.test(ua)?'<b>iPhone/iPad:</b> tik in Safari op <b>Deel</b> en kies <b>Zet op beginscherm</b>.':/android/.test(ua)?'<b>Android:</b> open het browsermenu <b>⋮</b> en kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>. Als die optie niet zichtbaar is, open deze site in Chrome.':'<b>Computer:</b> kies het installatie-icoon in de adresbalk of via het browsermenu.'}async function installApp(help){if(deferredInstallPrompt){try{deferredInstallPrompt.prompt();const r=await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;if(r.outcome!=='accepted')showInstallFallback(help)}catch(e){showInstallFallback(help)}}else showInstallFallback(help)}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;setInstallVisibility();});
+window.addEventListener('load',()=>setTimeout(setInstallVisibility,500));$('installBtn').onclick=()=>installApp($('installHelp'));$('installHomeBtn').onclick=()=>installApp($('installHomeHelp'));window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;setInstallVisibility()});
+setInstallVisibility();updateStudentName();updateStats();renderTopicChooser();if(state.unlocked)showApp();if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=41').catch(()=>{});

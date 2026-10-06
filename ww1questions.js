@@ -35,7 +35,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "Europese landen veroverden gebieden in Afrika en Azië om grote wereldrijken op te bouwen.",
-    "explanation": "De concurrentie tussen Europese landen nam toe.",
+    "explanation": "De concurrentie tussen Europese landen nam toe doodar over de hele wereld zij nu grenzen met elkaar deelden en betwisten.",
     "section": "§1 Oorzaken van de oorlog",
     "type": "Begrip"
   },
@@ -45,7 +45,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "Gebied in Zuidoost-Europa met veel verschillende volken en nationalistische bewegingen.",
-    "explanation": "Nationalisme en spanningen tussen landen maakten de Balkan onrustig.",
+    "explanation": "Nationalisme en spanningen tussen landen maakten de Balkan onrustig. Op de Balkan liggen landen als Servië. Albanië, Bulgarije, Griekenland.",
     "section": "§1 Oorzaken van de oorlog",
     "type": "Gebied"
   },
@@ -55,7 +55,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "Een land op de Balkan dat steun gaf aan nationalisten in Bosnië.",
-    "explanation": "Servische nationalisten wilden dat Bosnië bij Servië zou horen.",
+    "explanation": "Servische nationalisten wilden dat Bosnië bij Servië zou horen, in Bosnië woonden veel Serviërs.",
     "section": "§1 Oorzaken van de oorlog",
     "type": "Land"
   },
@@ -65,7 +65,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "Het idee dat oorlog goed of mooi is en de kracht van een land laat zien.",
-    "explanation": "Militarisme maakte oorlog en militaire macht belangrijk.",
+    "explanation": "Militarisme betekent het verheerlijken van het leger, het was een eer om te dienen en mensen bewezen soldaten en veteranen ook hun eer. Militarisme werd in gezin en school al overgebracht.",
     "section": "§1 Oorzaken van de oorlog",
     "type": "Begrip"
   },
@@ -75,7 +75,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "Concurrentie tussen landen om de meeste en beste wapens te hebben.",
-    "explanation": "Landen bouwden steeds grotere legers en sterkere wapens.",
+    "explanation": "Landen bouwden steeds grotere legers en sterkere wapens als reactie op elkaar.",
     "section": "§1 Oorzaken van de oorlog",
     "type": "Begrip"
   },
@@ -153,7 +153,9 @@ const WW1_QUESTIONS = [
     "answers": [
       "Mobilisatie"
     ],
-    "alsoGood": [],
+    "alsoGood": [
+      "Mobiliseren"
+    ],
     "question": "Een leger gereedmaken voor een oorlog.",
     "explanation": "De mobilisatie van Rusland ging volgens Duitsland sneller dan verwacht.",
     "section": "§1 Oorzaken van de oorlog",
@@ -173,7 +175,9 @@ const WW1_QUESTIONS = [
     "answers": [
       "Frans Ferdinand"
     ],
-    "alsoGood": [],
+    "alsoGood": [
+      "Franz Ferdinand"
+    ],
     "question": "Kroonprins (aartshertog) van Oostenrijk-Hongarije.",
     "explanation": "Zijn moord in Sarajevo was de directe aanleiding voor de oorlog.",
     "section": "§2 Verloop van de oorlog",
@@ -183,7 +187,9 @@ const WW1_QUESTIONS = [
     "answers": [
       "Gavrilo Princip"
     ],
-    "alsoGood": [],
+    "alsoGood": [
+      "Princip"
+    ],
     "question": "Een Servische nationalist die Frans Ferdinand vermoordde.",
     "explanation": "Hij vond dat Bosnië bij Servië moest horen.",
     "section": "§2 Verloop van de oorlog",
@@ -193,7 +199,9 @@ const WW1_QUESTIONS = [
     "answers": [
       "Sarajevo"
     ],
-    "alsoGood": [],
+    "alsoGood": [
+      "Sarajewo"
+    ],
     "question": "De moord op Frans Ferdinand in Sarajevo.",
     "explanation": "Oostenrijk-Hongarije verklaarde daarna Servië de oorlog; bondgenoten raakten betrokken.",
     "section": "§2 Verloop van de oorlog",
@@ -328,7 +336,9 @@ const WW1_QUESTIONS = [
     "answers": [
       "Tank"
     ],
-    "alsoGood": [],
+    "alsoGood": [
+      "Tanks"
+    ],
     "question": "Gepantserd voertuig dat over moeilijk terrein kon rijden.",
     "explanation": "Tanks waren een nieuw wapen in de oorlog.",
     "section": "§2 Verloop van de oorlog",
@@ -362,7 +372,8 @@ const WW1_QUESTIONS = [
       "Wereldoorlog"
     ],
     "alsoGood": [
-      "Eerste Wereldoorlog"
+      "Eerste Wereldoorlog",
+      "WOI"
     ],
     "question": "Oorlog die niet alleen in Europa werd gevoerd.",
     "explanation": "Er werd ook gevochten in het Midden-Oosten, Afrika en in koloniale gebieden.",
@@ -425,8 +436,10 @@ const WW1_QUESTIONS = [
     "answers": [
       "Neutraliteit"
     ],
-    "alsoGood": [],
-    "question": "Nederland deed niet mee aan de oorlog en was geen lid van een militair bondgenootschap.",
+    "alsoGood": [
+      "Neutraal"
+    ],
+    "question": "Houding van Nederland, deed niet mee aan de oorlog en was geen lid van een militair bondgenootschap.",
     "explanation": "Nederland probeerde buiten de oorlog te blijven.",
     "section": "§3 Nederland tijdens de oorlog",
     "type": "Begrip"
@@ -479,7 +492,9 @@ const WW1_QUESTIONS = [
     "answers": [
       "Zeemijnen"
     ],
-    "alsoGood": [],
+    "alsoGood": [
+      "Mijnen"
+    ],
     "question": "Explosieven in zee die schepen konden beschadigen of laten zinken.",
     "explanation": "Scheepvaart werd daardoor gevaarlijker.",
     "section": "§3 Nederland tijdens de oorlog",
@@ -573,7 +588,7 @@ const WW1_QUESTIONS = [
       "1917"
     ],
     "alsoGood": [],
-    "question": "Belangrijk keerpunt in de oorlog door afhakers en nieuwkomers",
+    "question": "Belangrijk jaartal die een keerpunt in de oorlog werd door afhakers en nieuwkomers",
     "explanation": "De Russische Revolutie vond plaats en de Verenigde Staten sloten zich aan bij de geallieerden.",
     "section": "§4 Het einde van de oorlog",
     "type": "Jaartal"
@@ -594,7 +609,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "De Russische alleenheerser vóór de revolutie.",
-    "explanation": "De tsaar kreeg te maken met armoede, voedseltekorten en ontevredenheid.",
+    "explanation": "De tsaar kreeg te maken met armoede, voedseltekorten en ontevredenheid. Tsaar is een Russisch woord voor keizer.",
     "section": "§4 Het einde van de oorlog",
     "type": "Persoon/functie"
   },
@@ -604,7 +619,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "Protesten en onrust leidden tot het aftreden van de tsaar.",
-    "explanation": "Rusland kreeg een nieuwe regering.",
+    "explanation": "Rusland kreeg een nieuwe voorlopige regering, maar zette ondanks het slechte verloop de oorlog wel door",
     "section": "§4 Het einde van de oorlog",
     "type": "Gebeurtenis"
   },
@@ -636,7 +651,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "De communisten onder Lenin namen de macht over na deze opstand",
-    "explanation": "Daarna sloot Rusland vrede met Duitsland.",
+    "explanation": "Na deze tweede revolutie kwamen de communisten (bolsjewieken)  aan de macht. Onder Lenin sloot Rusland vrede met Duitsland tot woede van de andere geallieerden die zich verraden voelden.",
     "section": "§4 Het einde van de oorlog",
     "type": "Gebeurtenis"
   },
@@ -644,9 +659,13 @@ const WW1_QUESTIONS = [
     "answers": [
       "Sovjet-Unie"
     ],
-    "alsoGood": [],
-    "question": "Rusland werd in 1922 de Sovjet-Unie.",
-    "explanation": "De communistische staat kreeg deze nieuwe naam.",
+    "alsoGood": [
+      "Sovjetunie",
+      "USSR",
+      "U.S.S.R."
+    ],
+    "question": "De naam die het communistische regering kreeg in 1922",
+    "explanation": "De communistische staat kreeg deze nieuwe naam nadat zij de burgeroorlog hadden gewonnen",
     "section": "§4 Het einde van de oorlog",
     "type": "Staat"
   },
@@ -681,8 +700,8 @@ const WW1_QUESTIONS = [
       "Wapenstilstand"
     ],
     "alsoGood": [],
-    "question": "Afspraak om de gevechten te stoppen OP 11-11-1918.",
-    "explanation": "Op 11 november 1918 werd de wapenstilstand getekend.",
+    "question": "Afspraak om de gevechten te stoppen op 11-11-1918.",
+    "explanation": "Op 11 november 1918 werd de wapenstilstand getekend in een tramwagon.",
     "section": "§4 Het einde van de oorlog",
     "type": "Begrip"
   },
@@ -702,7 +721,7 @@ const WW1_QUESTIONS = [
     ],
     "alsoGood": [],
     "question": "Vredesverdrag waarin Duitsland zware voorwaarden kreeg opgelegd.",
-    "explanation": "Duitsland werd militair en economisch verzwakt.",
+    "explanation": "Duitsland werd militair en economisch verzwakt door harde voorwaarden die hun werden opgelegd.",
     "section": "§4 Het einde van de oorlog",
     "type": "Verdrag"
   },
@@ -720,9 +739,11 @@ const WW1_QUESTIONS = [
     "answers": [
       "Koloniën"
     ],
-    "alsoGood": [],
+    "alsoGood": [
+      "Kolonies"
+    ],
     "question": "Duitsland moest zijn overzeese gebiedenen afstaan.",
-    "explanation": "Het Duitse wereldrijk verdween grotendeels.",
+    "explanation": "Het Duitse wereldrijk verdween hiermee.",
     "section": "§4 Het einde van de oorlog",
     "type": "Gevolg"
   },
@@ -733,8 +754,8 @@ const WW1_QUESTIONS = [
     "alsoGood": [
       "Inkrimping leger"
     ],
-    "question": "Het Duitse leger mocht maximaal 100.000 soldaten hebben.",
-    "explanation": "Duitsland moest militair zwak blijven.",
+    "question": "Dat het Duitse leger maximaal 100.000 soldaten mocht hebben.",
+    "explanation": "Duitsland moest militair zwak blijven en mocht ook geen dienstplicht meer invoeren.",
     "section": "§4 Het einde van de oorlog",
     "type": "Maatregel"
   },
@@ -770,7 +791,7 @@ const WW1_QUESTIONS = [
       "Volkerenbond"
     ],
     "question": "Internationale organisatie die na de oorlog werd opgericht.",
-    "explanation": "De organisatie moest helpen voorkomen dat opnieuw grote oorlogen zouden uitbreken.",
+    "explanation": "De organisatie moest helpen voorkomen dat opnieuw grote oorlogen zouden uitbreken. Een succes werd het niet toen de V.S. zelf niet mee ging doen en de Sovjet-Unie ook werd buitengesloten.",
     "section": "§4 Het einde van de oorlog",
     "type": "Doel"
   },
@@ -798,7 +819,7 @@ const WW1_QUESTIONS = [
       "Oostenrijkhongarije"
     ],
     "question": "Het rijk viel na de oorlog uiteen in meerdere staten.",
-    "explanation": "De oude Europese machtsverhoudingen veranderden sterk.",
+    "explanation": "De oude Europese machtsverhoudingen veranderden sterk, landen als Tsjechie, Slowakije, Hongarije ontstonden.",
     "section": "§4 Het einde van de oorlog",
     "type": "Gevolg"
   },
@@ -825,7 +846,7 @@ const WW1_QUESTIONS = [
       "Vergissing"
     ],
     "question": "Naam voor de mislukte poging van Troelstra om in 1918 een revolutie te beginnen.",
-    "explanation": "Er kwam geen revolutie in Nederland.",
+    "explanation": "Er kwam geen revolutie in Nederland, er was geen animo onder de mensen voor een opstand. Troelstra en de SDAP verloren hierdoor veel invloed.",
     "section": "§4 Het einde van de oorlog",
     "type": "Gebeurtenis"
   }
